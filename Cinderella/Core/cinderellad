@@ -1,0 +1,69 @@
+#!/bin/bash
+# --------------------------------------------------------------------------------------------------
+# Process to keep cinderella alive and well.
+#
+# v1.0                                                                         C.Paus (May 12, 2013)
+# --------------------------------------------------------------------------------------------------
+# configure the main executable variables, which depend on your system
+export CINDERELLA_TESTING="0"
+export CINDERELLA_DEBUG="1"
+# set to "1" if you do not want to trigger cache release
+export CINDERELLA_SAFEMODE="1"
+export CINDERELLA_WAIT="10800"                                                    # 10800 == 3 hours
+export CINDERELLA_DATA="/mnt/hadoop/cms/store/user/paus"
+export CINDERELLA_DIR="/usr/local/DynamicData/Cinderella"
+export CINDERELLA_LOGDIR="/var/log/DynamicData/Cinderella"
+export CINDERELLA_HTMLDIR="/home/cmsprod/public_html/dynamicdata"
+# select the algorithm used for the dataset ranking: see 'rankCache.py' for details
+export CINDERELLA_RANKALGO="timeRank"
+# define the storage occupancy value triggering a cache release
+export CINDERELLA_RELTHR="0.92"
+# define the cache release amount normalized to the available storage capacity
+export CINDERELLA_RELFRAC="0.05"
+
+while [ 1 ]
+do
+
+  # make sure the log directory exists
+  mkdir -p $CINDERELLA_LOGDIR
+  if [ -e "$CINDERELLA_LOGDIR" ]
+  then
+    #echo " Cinderella log area exists. Let's continue!"
+    sleep 1
+  else
+    echo ""
+    echo " Cinderella log area could not be found ($CINDERELLA_LOGDIR). EXIT!"
+    echo ""
+    exit 1
+  fi
+
+  # make sure the html status directory exists
+  mkdir -p $CINDERELLA_HTMLDIR
+  if [ -e "$CINDERELLA_HTMLDIR" ]
+  then
+    #echo " Cinderella html status area exists. Let's continue!"
+    sleep 1
+  else
+    echo ""
+    echo " Cinderella html status area could not be found ($CINDERELLA_HTMLDIR). EXIT!"
+    echo ""
+    exit 1
+  fi
+
+  # generate specific log file
+  tag=`date "+%s"`
+  logFile=$CINDERELLA_LOGDIR/cinderella-$tag.log
+  touch $logFile
+
+  # ten loops over the process with one logfile (keep it small)
+  for index in `echo 0 1 2 3 4 5 6 7 8 9`
+  do
+    echo " cinderella loop $index  -- $tag" >> $logFile
+    $CINDERELLA_DIR/Core/reviewCache.py     >> $logFile
+    echo " waiting for $CINDERELLA_WAIT seconds for next full cycle."
+    sleep $CINDERELLA_WAIT
+  done
+
+done
+
+exit 0;

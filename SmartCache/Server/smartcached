@@ -1,0 +1,43 @@
+#!/bin/bash
+# --------------------------------------------------------------------------------------------------
+# Process to keep smartcache alive and well.
+#
+# v1.0                                                                         C.Paus (May 12, 2013)
+# --------------------------------------------------------------------------------------------------
+export SMARTCACHE_DEBUG="1"
+export SMARTCACHE_DATA="/mnt/hadoop/cms/store/user/paus"
+export SMARTCACHE_DIR="/usr/local/DynamicData/SmartCache"
+export SMARTCACHE_LOGDIR="/var/log/DynamicData/SmartCache"
+
+while [ 1 ]
+do
+
+  # make sure the log directory exists
+  mkdir -p $SMARTCACHE_LOGDIR
+  if [ -e "$SMARTCACHE_LOGDIR" ]
+  then
+    #echo " SmartCache log area exists. Let's start!"
+    sleep 1
+  else
+    echo ""
+    echo " SmartCache log area could not be found ($SMARTCACHE_LOGDIR). EXIT!"
+    echo ""
+    exit 1
+  fi
+
+  # generate specific log file
+  tag=`date "+%s"`
+  logFile=$SMARTCACHE_LOGDIR/smartcache-$tag.log
+  touch $logFile
+
+  # ten loops over the process with one logfile (keep it small)
+  for index in `echo 0 1 2 3 4 5 6 7 8 9`
+  do
+    sleep 30
+    echo " smartcache loop $index  -- $tag"  >> $logFile
+    $SMARTCACHE_DIR/Server/reviewRequests.py >> $logFile
+  done
+
+done
+
+exit 0;

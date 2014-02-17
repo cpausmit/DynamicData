@@ -1,0 +1,51 @@
+# History of database installation
+# --------------------------------
+
+The general mysql installation is explained already in DynamicData/SmartCache/INSTALL-DB
+Here we will just discuss the addional installation needed for the Cache Release (Cinderella)
+
+# grant access to database Cinderella: user UserName at Hostname with password
+
+mysql -h localhost -u root -pRootPassword
+
+  mysql> grant all privileges on Cinderella.* to UserName@'YourServer.domain' \
+         identified by 'UserPassword' require SSL;
+  mysql> flush privileges;
+
+
+##############################################################################
+# History of SmartCache Database and tables
+# -----------------------------------------
+# login and see what databases are there
+
+mysql -h localhost -u root -pRootPassword
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema | 
+| SmartCache         | 
++--------------------+
+3 rows in set (0.00 sec)
+
+# define the new database (SmartCache)
+
+mysqladmin -h localhost -u root -pRootPassword create Cinderella
+
+# define new table (DatasetStatus)
+
+mysql -h localhost -u root -pRootPassword
+ mysql> use Cinderella;
+ # if you want to delete the entire table and start from scratch
+ mysql> drop   table DatasetStatus;
+ mysql> create table DatasetStatus (Name char(80), NUsed int, NDownloads int, InCache bool, EntryDateUT int);
+ # make sure a dataset remains unique (it is our key)
+ mysql> alter  table DatasetStatus add unique index(Name);
+
+# insert new download requests into the table and check them
+
+mysql
+  mysql> use Cinderella;
+  mysql> insert into DatasetStatus values ('filefi/029/r12b-dph-j22-v1',0,0,true,1391911113);
+  mysql> select * from DatasetStatus;

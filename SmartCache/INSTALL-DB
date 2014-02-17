@@ -1,0 +1,153 @@
+# History of installation - Server
+# --------------------------------
+# first install mysql and require python interface
+yum install mysql mysql-server MySQL-python
+
+# start the mysql server and enable on boot
+service mysqld start
+chkconfig --level 345 mysqld on
+
+# set a root password
+/usr/bin/mysqladmin -u root password 'RootPassword'
+/usr/bin/mysqladmin -u root -h YourServer.domain password 'RootPassword'
+
+# then secure the database server
+/usr/bin/mysql_secure_installation
+
+# let's make things safe by using openssl encryption
+
+mkdir /etc/mysql/certs
+cd    /etc/mysql/certs
+
+# Create CA certificate (fill in reasonable information, email should be blank)
+
+openssl genrsa 2048 > ca-key.pem
+openssl req -new -x509 -nodes -days 3600 -key ca-key.pem -out ca-cert.pem
+
+# Create server certificate, remove passphrase, and sign it
+# server-cert.pem = public key, server-key.pem = private key
+#
+# IMPORTANT: in the dialog for server and client you have to use a different
+#            'Common Name' than for the CA certificate (towards the end of the
+#            dialog). Otherwise you will get and error in the verification!
+
+openssl req -newkey rsa:2048 -days 3600 -nodes -keyout server-key.pem \
+            -out server-req.pem
+openssl rsa -in server-key.pem -out server-key.pem
+openssl x509 -req -in server-req.pem -days 3600 -CA ca-cert.pem \
+             -CAkey ca-key.pem -set_serial 01 -out server-cert.pem
+
+# Create client certificate, remove passphrase, and sign it
+# client-cert.pem = public key, client-key.pem = private key
+
+openssl req -newkey rsa:2048 -days 3600 -nodes -keyout client-key.pem \
+            -out client-req.pem
+openssl rsa -in client-key.pem -out client-key.pem
+openssl x509 -req -in client-req.pem -days 3600 -CA ca-cert.pem \
+             -CAkey ca-key.pem -set_serial 01 -out client-cert.pem
+
+# After generating the certificates, verify them:
+
+openssl verify -CAfile ca-cert.pem server-cert.pem client-cert.pem
+
+# the answer should be
+ >> server-cert.pem: OK
+ >> client-cert.pem: OK
+
+# instruct sever to use SSL encryption and bind (add following to /etc/my.cnf)
+
+[mysqld]
+ssl-ca=/etc/mysql/certs/ca-cert.pem
+ssl-cert=/etc/mysql/certs/server-cert.pem
+ssl-key=/etc/mysql/certs/server-key.pem
+bind-address=18.77.2.169
+
+# before continuing make it less complex for the user by using the config file
+# add the following lines (this is not for root)
+
+[mysql]
+host=YourServer.domain
+user=UserName
+password=UserPassword
+[client]
+ssl-cert=/etc/mysql/certs/client-cert.pem
+ssl-key=/etc/mysql/certs/client-key.pem
+
+# update firewall so people can access the server
+
+/sbin/iptables -A INPUT -i eth0 -p tcp --destination-port 3306 -j ACCEPT
+service iptables save
+
+# grant access to database SmartCache: user UserName at Hostname with password
+
+mysql -h localhost -u root -pRootPassword
+
+  mysql> grant all privileges on SmartCache.* to UserName@'YourServer.domain' \
+         identified by 'UserPassword' require SSL;
+  mysql> flush privileges;
+
+# as some user on Hostname access the database to add a download request
+
+ $SMARTCACHE_DIR/Utils/addDownloadRequest.py \
+   --file=CA56A54E-62FA-E111-BCE1-00261894393C.root \
+   --dataset=s12-h125gg-gf-v7a \
+   --book=filefi/029
+
+
+##############################################################################
+# History of installation - Client
+# --------------------------------
+
+# install on client machines
+
+yum install -y mysql MySQL-python
+
+# before continuing make it less complex by using the config file add
+# the following lines to /etc/my.cnf
+
+[mysql]
+host=YourServer.domain
+user=UserName
+password=UserPassword
+ssl-cert=/etc/mysql/certs/client-cert.pem
+ssl-key=/etc/mysql/certs/client-key.pem
+
+# and copy the /etc/mysql/certs directory from the server
+
+mkdir  /etc/mysql
+scp -r YourServer.domain:/etc/mysql/certs /etc/mysql
+
+
+##############################################################################
+# History of SmartCache Database and tables
+# -----------------------------------------
+# login and see what databases are there
+
+mysql -h localhost -u root -pRootPassword
+
+  mysql> show databases;
+ +--------------------+
+ | Database           |
+ +--------------------+
+ | information_schema | 
+ | mysql              | 
+ +--------------------+
+ 2 rows in set (0.00 sec)
+
+# define the new database (SmartCache)
+
+mysqladmin -h localhost -u root -pRootPassword create SmartCache
+
+# define new table (Downloads)
+
+mysql -h localhost -u root -pRootPassword
+ mysql> use SmartCache;
+ mysql> create table Downloads (File char(80),Dataset char(80),Book char(80), Priority int, EntryDateUT int, Status int);
+
+# insert new download requests into the table and check them
+
+mysql -h localhost -u root -pRootPassword
+  mysql> use SmartCache;
+  mysql> insert into Downloads values ('00FC73F6-74FA-E111-B096-003048D15DDA.root','s12-h125gg-gf-v7a','filefi/029',0,1367547967,0);
+  mysql> insert into Downloads values ('045EB352-6EFA-E111-845C-003048678B34.root','s12-h125gg-gf-v7a','filefi/029',0,1367547967,0);
+  mysql> select * from Downloads;

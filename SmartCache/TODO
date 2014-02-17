@@ -1,0 +1,13 @@
+
+- grant access to database SmartCache to user ssluser from any machine in the cluster
+  using SSL and certificates and not using an explicit password
+
+  http://www.mysqlperformanceblog.com/2013/06/22/setting-up-mysql-ssl-and-secure-connections/
+
+- in reviewRequests.py [ we need a step 6 in which old logfiles will be cleared ]
+
+- cleanup old failed downloads 
+  but with some check on the time: rm /mnt/hadoop/cms/store/user/paus/filefi/0??/*/*smartcache*
+
+- add more useful monitoring 
+

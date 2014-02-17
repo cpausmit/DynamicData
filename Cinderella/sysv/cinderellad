@@ -1,0 +1,82 @@
+#!/bin/bash
+# --------------------------------------------------------------------------------------------------
+# cinderellad     Startup script for the cinderella cache release
+#
+# chkconfig: - 70 15
+# description: Cinderella is a program that keeps a record of dataset usage and creates a database \
+#              of the most recent usage.
+#
+# processname: cinderellad
+# config:      /etc/cinderellad.conf
+# pidfile:     /var/run/cinderellad.pid
+# --------------------------------------------------------------------------------------------------
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# This will prevent initlog from swallowing up a pass-phrase prompt if
+# mod_ssl needs a pass-phrase from the user.
+INITLOG_ARGS=""
+
+# Path to the running script, server binary, and short-form for messages.
+#cinderellad=/usr/sbin/cinderellad
+cinderellad=/usr/local/DynamicData/Cinderella/Core/cinderellad
+prog=cinderellad
+pidfile=${PIDFILE-/var/run/cinderellad.pid}
+lockfile=${LOCKFILE-/var/lock/subsys/cinderellad}
+
+RETVAL=0
+STOP_TIMEOUT=${STOP_TIMEOUT-10}
+
+# Start cinderella daemon (cinderellad)
+start() {
+    echo -n $"Starting $prog:"
+    daemon --user=cmsprod --pidfile=${pidfile} $cinderellad \&
+    RETVAL=$?
+    echo
+    [ $RETVAL = 0 ] && touch ${lockfile}
+    
+    # this seems like a hack, but I do not know how to do it differently
+    pid=`ps auxw | grep "/bin/bash $cinderellad" |tr -s ' '|cut -d' ' -f2`
+    echo $pid > $pidfile
+    
+    return $RETVAL
+}
+
+# Stop cinderella daemon (cinderellad)
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc -p ${pidfile} -d ${STOP_TIMEOUT} $cinderellad
+    RETVAL=$?
+    echo
+    [ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
+}
+
+# See how we were called.
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  status)
+    status -p ${pidfile} $cinderellad
+    RETVAL=$?
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  condrestart|try-restart)
+    if status -p ${pidfile} $cinderellad >&/dev/null
+    then
+      stop
+      start
+    fi
+    ;;
+  *)
+    echo $"Usage: $prog {start|stop|restart|status|help}"
+    RETVAL=2
+esac
+
+exit $RETVAL

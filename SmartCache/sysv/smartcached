@@ -1,0 +1,82 @@
+#!/bin/bash
+# --------------------------------------------------------------------------------------------------
+# smartcached     Startup script for the smartcache Server
+#
+# chkconfig: - 70 15
+# description: SmartCache is a server to receive request for file downloads and \
+#              manage those requests using the local batch infrastructure.
+#
+# processname: smartcached
+# config:      /etc/smartcached.conf
+# pidfile:     /var/run/smartcached.pid
+# --------------------------------------------------------------------------------------------------
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# This will prevent initlog from swallowing up a pass-phrase prompt if
+# mod_ssl needs a pass-phrase from the user.
+INITLOG_ARGS=""
+
+# Path to the running script, server binary, and short-form for messages.
+#smartcached=/usr/sbin/smartcached
+smartcached=/usr/local/DynamicData/SmartCache/Server/smartcached
+prog=smartcached
+pidfile=${PIDFILE-/var/run/smartcached.pid}
+lockfile=${LOCKFILE-/var/lock/subsys/smartcached}
+
+RETVAL=0
+STOP_TIMEOUT=${STOP_TIMEOUT-10}
+
+# Start smartcache daemon (smartcached)
+start() {
+    echo -n $"Starting $prog:"
+    daemon --user=cmsprod --pidfile=${pidfile} $smartcached \&
+    RETVAL=$?
+    echo
+    [ $RETVAL = 0 ] && touch ${lockfile}
+    
+    # this seems like a hack, but I do not know how to do it differently
+    pid=`ps auxw | grep "/bin/bash $smartcached" |tr -s ' '|cut -d' ' -f2`
+    echo $pid > $pidfile
+    
+    return $RETVAL
+}
+
+# Stop smartcache daemon (smartcached)
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc -p ${pidfile} -d ${STOP_TIMEOUT} $smartcached
+    RETVAL=$?
+    echo
+    [ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
+}
+
+# See how we were called.
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  status)
+    status -p ${pidfile} $smartcached
+    RETVAL=$?
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  condrestart|try-restart)
+    if status -p ${pidfile} $smartcached >&/dev/null
+    then
+      stop
+      start
+    fi
+    ;;
+  *)
+    echo $"Usage: $prog {start|stop|restart|status|help}"
+    RETVAL=2
+esac
+
+exit $RETVAL
