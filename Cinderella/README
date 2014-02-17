@@ -2,17 +2,11 @@
 # Cinderella
 =========================
 
-Cinderella is a cache release system in which a daemon (cinderellad) is run which will run in a loop
-with a configured wait time to evaluate the status of the datasets in the storage area. It will also
-review the existing level of used (remaining) space and if necessary trigger a cache release to
-reach a configured target level.
+Cinderella is a cache release system in which a daemon (cinderellad) is run which will run in a loop with a configured wait time to evaluate the status of the datasets in the storage area. It will also review the existing level of used (remaining) space and if necessary trigger a cache release to reach a configured target level.
 
-The cache release is triggered when a certain level (ex. 95%) of disk occupancy is reached and it
-will according to the created ranking of the datasets remove the least valuable datasets until the
-target level of disk occupancy (ex. 90%) is reached.
+The cache release is triggered when a certain level (ex. 95%) of disk occupancy is reached and it will according to the created ranking of the datasets remove the least valuable datasets until the target level of disk occupancy (ex. 90%) is reached.
 
-All of the conditions including the ranking algorithm can be tuned to serve the need of the specific
-site.
+All of the conditions including the ranking algorithm can be tuned to serve the need of the specific site.
 
 Installation
 ============
@@ -24,8 +18,7 @@ Installation
 
 You should be finished in a matter of seconds.
 
-WARNING: The install script activates the cache cleaner daemon by default. Make sure that the daemon is
-behaving as expected by running the main script in TESTING mode (see next).    
+WARNING: The install script activates the cache cleaner daemon by default. Make sure that the daemon is behaving as expected by running the main script in TESTING mode (see next).    
  
 Configuration
 ============
@@ -36,8 +29,8 @@ The user can configure the cache release software by modifying the core script.
 
 This is the list of variables and their meaning
 
-CINDERELLA_TESTING [flag: 0,1]  -> Set the script in testing mode (no execution only printout of commands) 
-CINDERELLA_DEBUG [flag: 0,1]    -> Set the script in debug mode (regulate verbosity)
+CINDERELLA_TESTING [flag: 0,1]  -> Set script in testing mode (no execution only command printout) 
+CINDERELLA_DEBUG [flag: 0,1]    -> Set script in debug mode (regulate verbosity)
 CINDERELLA_SAFEMODE [flag: 0,1] -> Disable deletions. 
 CINDERELLA_WAIT [int]           -> Specify cycle length (in seconds)
 CINDERELLA_DATA [str]           -> Specify path to the cache base directory
@@ -50,16 +43,15 @@ CINDERELLA_RELFRAC [float: 0,1] -> Define the cache released fraction
                                    (CINDERELLA_RELTHR - CINDERELLA_RELFRAC = target occupancy)
 
 Testing
-============
+=======
 
 Testing can be eased by setting the configuration variable CINDERELLA_TESTING to 1 and executing
     Cinderella/Core/reviewCache.py
 
-The output represents the sequence of scripts that are run by the core script.
-The user can test each script independently by copy pasting the 'Execute' printed on screen. 
+The output represents the sequence of scripts that are run by the core script. The user can test each script independently by copy pasting the 'Execute' printed on screen. 
 
 Scripts description 
-============
+===================
 
 In this section the description of the core scripts of the cache release manager is covered.
 
@@ -84,10 +76,7 @@ Script location
 Inputs
     ranking_algo -> string that specifies the ranking algorithm  
 
-This script performs a ranking of the records present in the dataset DB. The ranking formula is specified
-by the user. New ranking formula can be easily added to this script once they are translated into a MySQL
-query. Note that the script alters permanently the DB, which is ordered according to the ranking, so that
-the ranking is implicitly available to other scripts.
+This script performs a ranking of the records present in the dataset DB. The ranking formula is specified by the user. New ranking formula can be easily added to this script once they are translated into a MySQL query. Note that the script alters permanently the DB, which is ordered according to the ranking, so that the ranking is implicitly available to other scripts.
 
 releaseCache.py
 ------------
@@ -100,13 +89,7 @@ Inputs
     rel_frac -> cache released fraction (rel_thr-rel_frac is the target occupancy)
     safemode -> disable deletions 
 
-This script determines if there is need to release the cache and performs the release. 
-A release is triggered if the storage occupancy goes above the threshold, specified by the user.
-The amount of deleted datasets depends on the released fraction, specified by the user, which corresponds 
-to the amount of cache space that is freed once the release is issued. The determination of the sets of 
-datasets to be removed depends on their ranking. Note that deleted datasets are not removed from the dataset 
-database, but their record is updated accordingly (a deleted datasets corresponds to a record with 
-'InCache=False'). 
+This script determines if there is need to release the cache and performs the release. A release is triggered if the storage occupancy goes above the threshold, specified by the user. The amount of deleted datasets depends on the released fraction, specified by the user, which corresponds to the amount of cache space that is freed once the release is issued. The determination of the sets of datasets to be removed depends on their ranking. Note that deleted datasets are not removed from the dataset database, but their record is updated accordingly (a deleted datasets corresponds to a record with 'InCache=False'). 
 
 makeCacheWebPage.py
 ------------
@@ -118,9 +101,7 @@ Inputs
     rel_frac -> cache released fraction 
     html_output_file -> output html file
 
-This script reads the dataset database and dumps it into a html file, which can then be accessed via a web
-browser. The rel_frac input is used to highlight the lowest ranked datasets, which would be removed in case
-of a triggered cache release. 
+This script reads the dataset database and dumps it into a html file, which can then be accessed via a web browser. The rel_frac input is used to highlight the lowest ranked datasets, which would be removed in case of a triggered cache release. 
 
 
 
