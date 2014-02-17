@@ -1,21 +1,11 @@
 Dynamic Data Management
 =======================
 
-This is the local dynamic data management for our Tier-3 center that relies only on the directory
-structure of the CMSSW data management but not on the existence of official datasets of transfer
-tools.
+This is the local dynamic data management for our Tier-3 center that relies only on the directory structure of the CMSSW data management but not on the existence of official datasets of transfer tools.
 
-Dynamic data management is split rather cleanly into a part which is cache release and another that
-does the dynamic subscription. Both parts are completely independend; they do not directly
-communicate with each other.  Conceptually the cache release mechanism will ensure that the storage
-space will always be filled between the two margins: UpperFilling and LowerFilling. The moment the
-UpperFilling level is reached the stored data will be ranked and the least valuable datasets will be
-deleted until the LowerFilling level will be met. The algorithm to determine the value (rank) of a
-dataset can be customized. There will be a plugin to apply your own algorithm based on a number of
-input parameters. The key input is of course, when the data as accessed the last time.
+Dynamic data management is split rather cleanly into a part which is cache release and another that does the dynamic subscription. Both parts are completely independend; they do not directly communicate with each other.  Conceptually the cache release mechanism will ensure that the storage space will always be filled between the two margins: UpperFilling and LowerFilling. The moment the UpperFilling level is reached the stored data will be ranked and the least valuable datasets will be deleted until the LowerFilling level will be met. The algorithm to determine the value (rank) of a dataset can be customized. There will be a plugin to apply your own algorithm based on a number of input parameters. The key input is of course, when the data as accessed the last time.
 
   Cache Release        - done by Cinderalla package, the cleaner
   Dynamic Subscription - done by SmartCache package
 
-Both are setup to run as system daemons. Installation scripts are provided but they are still
-somewhat fragile. Please check!
+Both are setup to run as system daemons. Installation scripts are provided but they are still somewhat fragile. Please check!
