@@ -44,7 +44,7 @@ cp -r ../DynamicData /usr/local
 if [ "`hostname | tr [A-Z] [a-z]`" == "`echo $SMARTCACHE_SERVER | tr [A-Z] [a-z] `" ]
 then
   mkdir -p /var/log/DynamicData/SmartCache
-  mkdir -p /var/log/DynamicData/Cinderalla
+  mkdir -p /var/log/DynamicData/Cinderella
 
   # the owner has to be $DYNAMICDATA_USER:$DYNAMICDATA_GROUP, this user runs the process
   chown ${DYNAMICDATA_USER}:${DYNAMICDATA_GROUP} -R /var/log/DynamicData
