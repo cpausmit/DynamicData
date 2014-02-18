@@ -11,7 +11,7 @@ import database
 # - S U B R O U T I N E S -----------------------------------------------------------------------------
 
 def deleteDataset(dataset):
-    # make sure dataset name is not emply to avoid deleteting storage base directory
+    # make sure dataset name is non-empty to avoid deleteting storage base directory
     if (dataset == ''):
         print " INFO - trying to remove non-existing dataset, skipping deletion."
         return
