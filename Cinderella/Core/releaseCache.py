@@ -11,12 +11,17 @@ import database
 # - S U B R O U T I N E S -----------------------------------------------------------------------------
 
 def deleteDataset(dataset):
-    # delete the dataset from the FS
-    hadBaseDir = os.environ['CINDERELLA_DATA']
-    hadBaseDir = hadBaseDir.replace('/mnt/hadoop','')
-    cmd = 'hadoop fs -rm -r ' + hadBaseDir + '/' + dataset
-    os.system(cmd)
-    return
+    # make sure dataset name is not emply to avoid deleteting storage base directory
+    if (dataset == ''):
+        print " INFO - trying to remove non-existing dataset, skipping deletion."
+        return
+    else:
+        # delete the dataset from the FS
+        hadBaseDir = os.environ['CINDERELLA_DATA']
+        hadBaseDir = hadBaseDir.replace('/mnt/hadoop','')
+        cmd = 'hadoop fs -rm -r ' + hadBaseDir + '/' + dataset
+        os.system(cmd)
+        return
 
 def getReleaseCondition(storageCapacity,storageFreeSpace,releaseThr):
     storageOccupiedFrac = (storageCapacity-storageFreeSpace)/storageCapacity
