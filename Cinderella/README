@@ -14,7 +14,7 @@ Installation
 1. Download DynamicData package - https://github.com/cpausmit/DynamicData
 2. Login as root, open a terminal and enter in the DynamicData base directory
 3. Execute
-    installCinderella.sh
+    install.sh
 
 You should be finished in a matter of seconds.
 
