@@ -4,14 +4,14 @@
 #
 # v1.0                                                                                  May 09, 2013
 #===================================================================================================
-import os,sys,getopt,time
+import os,sys,getopt,re,time
 import MySQLdb
 
 #===================================================================================================
 # Main starts here
 #===================================================================================================
 # Define string to explain usage of the script
-usage =  " Usage: checkDownloadRequest.py --file=<name>\n"
+usage =  " Usage: checkDownloadRequest.py --files=<name1,name2,...>\n"
 usage += "                                --dataset=<name>\n"
 usage += "                                --book=<name>\n"
 usage += "                                [ --priority=0\n"
@@ -20,7 +20,7 @@ usage += "                                  --status=0 ]\n"
 usage += "                                [ --help ]\n\n"
 
 # Define the valid options which can be specified and check out the command line
-valid = ['file=','dataset=','book=','priority=','time=','status=',
+valid = ['files=','dataset=','book=','priority=','time=','status=',
          'help']
 try:
     opts, args = getopt.getopt(sys.argv[1:], "", valid)
@@ -33,7 +33,7 @@ except getopt.GetoptError, ex:
 # Get all parameters for the production
 # --------------------------------------------------------------------------------------------------
 # set defaults for each command line parameter/option
-file     = ''
+files    = ''
 dataset  = ''
 book     = ''
 priority = 0
@@ -45,8 +45,8 @@ for opt, arg in opts:
     if opt == "--help":
         print usage
         sys.exit(0)
-    if opt == "--file":
-        file     = arg
+    if opt == "--files":
+        files     = arg
     if opt == "--dataset":
         dataset  = arg
     if opt == "--book":
@@ -58,7 +58,7 @@ for opt, arg in opts:
     if opt == "--status":
         status   = arg
 
-if file == '' or dataset == '' or book == '':
+if files == '' or dataset == '' or book == '':
     print '\n ERROR in usage. Please, fully specify your request.\n'
     print usage
     sys.exit(1)
@@ -70,8 +70,10 @@ db = MySQLdb.connect(read_default_file="/etc/my.cnf",read_default_group="mysql",
 cursor = db.cursor()
 
 # prepare SQL query to INSERT a record into the database.
-sql = "select * from Downloads where Status<2 and File='%s' and Dataset='%s' and Book='%s';"%\
-      (file,dataset,book)
+sql = "select * from Downloads where Status<2 and Dataset='%s' and Book='%s';"%\
+      (dataset,book)
+
+file = ''
 match = False
 try:
     # Execute the SQL command
@@ -80,10 +82,12 @@ try:
     results = cursor.fetchall()
 
     for row in results:
+        file   = row[0]
         status = row[5]
+        if re.search(file,files):
+            match = True
+            break
 
-    if len(results) > 0:
-        match = True
 except:
     pass  #print " Not data matches record."
 
@@ -97,5 +101,7 @@ if match:
 else:
     print ' Download completed (%s).'%(file)
     if os.path.isdir('/mnt/hadoop/cms/store/user/paus'):
-        os.system('ls -lh /mnt/hadoop/cms/store/user/paus/' + book + '/' + dataset + '/' + file)
+        for file in files.split(','):
+            os.system('ls -lh /mnt/hadoop/cms/store/user/paus/' + book + '/' + dataset + '/' + file)
+
     sys.exit(1)
