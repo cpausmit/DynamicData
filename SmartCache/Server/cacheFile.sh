@@ -38,7 +38,7 @@ fi
 # take care of the certificate
 if [ -e "./x509up_u`id -u`" ]
 then
-  rm /tmp/x509up_u`id -u`
+  #rm /tmp/x509up_u`id -u`
   export X509_USER_PROXY="./x509up_u`id -u`"
 fi
 echo " INFO -- using the x509 ticket: $X509_USER_PROXY"
