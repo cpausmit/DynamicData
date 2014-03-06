@@ -66,10 +66,27 @@ if file == '' or dataset == '' or book == '':
 # Open database connection
 db = MySQLdb.connect(read_default_file="/etc/my.cnf",read_default_group="mysql",db="SmartCache")
 
-# prepare a cursor object using cursor() method
+# Prepare a cursor object using cursor() method
 cursor = db.cursor()
 
-# Prepare SQL query to INSERT a record into the database.
+# First check whether this download request already exists in the database
+sql = "select * from Downloads where File='%s' and Dataset='%s' and Book='%s';"\
+      %(file,dataset,book)
+print ' select: ' + sql
+results = []
+try:
+    # Execute the SQL command
+    cursor.execute(sql)
+    results = cursor.fetchall()
+except:
+    print " Error (%s): unable to fetch data."%(sql)
+    sys.exit(0)
+
+if len(results) > 0:
+    print ' Download request exists already. Do not insert again.'
+    sys.exit(0)
+
+# Prepare SQL query to INSERT a new record into the database.
 sql = "insert into Downloads(File,Dataset,Book,Priority,EntryDateUT,Status) values('%s','%s','%s','%d','%d',0)"%(file,dataset,book,priority,time)
 
 print ' insert: ' + sql
