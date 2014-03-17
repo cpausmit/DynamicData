@@ -28,9 +28,10 @@
 # TODO -- [ we need a step 6 in which old logfiles will be cleared ]
 #
 # --------------------------------------------------------------------------------------------------
-import os,MySQLdb
+import os, MySQLdb, time
 
 # define all relevant variable in python
+SMARTCACHE_DATA="/mnt/hadoop/cms/store/user/paus"
 SMARTCACHE_DIR="/usr/local/DynamicData/SmartCache"
 SMARTCACHE_LOGDIR="/var/log/DynamicData/SmartCache"
 SMARTCACHE_STATUS= SMARTCACHE_LOGDIR + "/smartcache.status"
@@ -39,6 +40,12 @@ SMARTCACHE_STATUS= SMARTCACHE_LOGDIR + "/smartcache.status"
 os.environ['SMARTCACHE_DIR']    = SMARTCACHE_DIR
 os.environ['SMARTCACHE_LOGDIR'] = SMARTCACHE_LOGDIR
 os.environ['SMARTCACHE_STATUS'] = SMARTCACHE_STATUS
+
+startTime = time.time()
+today = str(datetime.date.today())
+ttime = time.strftime("%H:%M")
+
+print ' Review started at UT:%d == %s - %s'%(startTime,today,ttime)
 
 # --------------------------------------------------------------------------------------------------
 # PREP ---------------------------------------------------------------------------------------------
@@ -90,7 +97,33 @@ try:
         print " --> file=%s, dset=%s, book=%s, prio=%d, time=%d, stat=%d"% \
               (file,dset,book,prio,time,stat)
 
-        # find all matching files and make sure dataset and book are the same
+        # before removing this Download request create history in CompletedDownloads table
+        # --------------------------------------------------------------------------------
+        # - record time
+        completionTime = startTime
+        # - find file size and download status
+        sizeGb = 0
+        fullFile = SMARTCACHE_DATA + '/' + book + '/' + dset + '/' file
+        if os.path.isfile(fullFile):
+            sizeBytes = os.path.getsize(fullFile)
+            sizeGb = float(sizeBytes)/1024./1024./1024.
+            stat = 0  # overwriting the status (now it reflects the completion of download)
+        else:
+            print ' File does not exist, download failed: ' + fullFile
+        # - insert into our CompletedDownload table
+        sql="insert into CompletedDownloads values ('%s','%s','%s',%d,%d,%d,%d,%f);"%\
+             (file,dset,book,prio,time,stat,completionTime,sizeGb)
+        try:
+            # Execute the SQL command
+            print '        ' + sql
+            cursor.execute(sql)
+            # Commit your changes in the database
+            db.commit()
+        except:
+            print " Error (%s): unable to insert record into CompletedDownload table."%(sql)
+
+        # remove all matching download requests from the Downloads table
+        # --------------------------------------------------------------
         sql="delete from Downloads where Status=2 and File='%s' and Dataset='%s'and Book='%s';"%\
              (file,dset,book)
         try:

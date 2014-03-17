@@ -151,3 +151,7 @@ mysql -h localhost -u root -pRootPassword
   mysql> insert into Downloads values ('00FC73F6-74FA-E111-B096-003048D15DDA.root','s12-h125gg-gf-v7a','filefi/029',0,1367547967,0);
   mysql> insert into Downloads values ('045EB352-6EFA-E111-845C-003048678B34.root','s12-h125gg-gf-v7a','filefi/029',0,1367547967,0);
   mysql> select * from Downloads;
+
+# no entries are to be deleted or added from this table (it is filled by the daemon itself)
+
+  mysql> create table CompletedDownloads (File char(80),Dataset char(80),Book char(80), Priority int, EntryDateUT int, Status int, CompletionDateUT int, SizeGb float);
