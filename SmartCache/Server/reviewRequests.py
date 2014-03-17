@@ -103,7 +103,7 @@ try:
         completionTime = startTime
         # - find file size and download status
         sizeGb = 0
-        fullFile = SMARTCACHE_DATA + '/' + book + '/' + dset + '/' file
+        fullFile = SMARTCACHE_DATA + '/' + book + '/' + dset + '/' + file
         if os.path.isfile(fullFile):
             sizeBytes = os.path.getsize(fullFile)
             sizeGb = float(sizeBytes)/1024./1024./1024.
