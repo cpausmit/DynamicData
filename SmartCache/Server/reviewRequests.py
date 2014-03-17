@@ -29,6 +29,8 @@
 #
 # --------------------------------------------------------------------------------------------------
 import os, MySQLdb, time
+import datetime
+from   datetime import date, timedelta
 
 # define all relevant variable in python
 SMARTCACHE_DATA="/mnt/hadoop/cms/store/user/paus"
