@@ -46,6 +46,9 @@ def getRemovableDatasets(releaseAmount):
     for row in results:
         dataset = row[0]
         dbDataset = datasetStati.retrieveElement(dataset)
+        # if dataset not in cache do not consider it for deletions
+        if (not dbDataset.inCache):
+            continue
         freedSpaceSum += dbDataset.size
         # if size of removable datasets exceeds release amount stop
         if (freedSpaceSum > releaseAmount):

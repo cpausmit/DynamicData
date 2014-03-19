@@ -12,18 +12,22 @@ import sys, os, time
 
 # define current python script variables starting from the environmental variables
 # if variables are not assigned use default
-CINDERELLA_TESTING    = os.environ.get('CINDERELLA_TESTING', "1") 
-CINDERELLA_DEBUG      = os.environ.get('CINDERELLA_DEBUG', "1")     
-CINDERELLA_SAFEMODE   = os.environ.get('CINDERELLA_SAFEMODE', "1")     
-CINDERELLA_DATA       = os.environ.get('CINDERELLA_DATA', "/mnt/hadoop/cms/store/user/paus/")    
-CINDERELLA_DIR        = os.environ.get('CINDERELLA_DIR', "/usr/local/DynamicData/Cinderella")     
-CINDERELLA_LOGDIR     = os.environ.get('CINDERELLA_LOGDIR', "/var/log/DynamicData/Cinderella")  
-CINDERELLA_HTMLDIR    = os.environ.get('CINDERELLA_HTMLDIR', "/home/cmsprod/public_html/Cinderella")  
-CINDERELLA_RANKALGO   = os.environ.get('CINDERELLA_RANKALGO', "timeRank")
-CINDERELLA_RELTHR     = os.environ.get('CINDERELLA_RELTHR', "0.92")  
-CINDERELLA_RELFRAC    = os.environ.get('CINDERELLA_RELFRAC', "0.05") 
-CINDERELLA_STATUS     = CINDERELLA_LOGDIR + "/cinderella.status"
-CINDERELLA_HTMLSTATUS = CINDERELLA_HTMLDIR + "/cinderella.html"
+CINDERELLA_TESTING     = os.environ.get('CINDERELLA_TESTING', "1") 
+CINDERELLA_DEBUG       = os.environ.get('CINDERELLA_DEBUG', "1")     
+CINDERELLA_SAFEMODE    = os.environ.get('CINDERELLA_SAFEMODE', "1")     
+CINDERELLA_DATA        = os.environ.get('CINDERELLA_DATA', "/mnt/hadoop/cms/store/user/paus/")    
+CINDERELLA_DATAREPLICA = os.environ.get('CINDERELLA_DATAREPLICA', "2")    
+CINDERELLA_DIR         = os.environ.get('CINDERELLA_DIR', "/usr/local/DynamicData/Cinderella")     
+CINDERELLA_LOGDIR      = os.environ.get('CINDERELLA_LOGDIR', "/var/log/DynamicData/Cinderella")  
+CINDERELLA_HTMLDIR     = os.environ.get('CINDERELLA_HTMLDIR', "/home/cmsprod/public_html/Cinderella")  
+CINDERELLA_RANKALGO    = os.environ.get('CINDERELLA_RANKALGO', "timeRank")
+CINDERELLA_RELTHR      = os.environ.get('CINDERELLA_RELTHR', "0.92")  
+CINDERELLA_RELFRAC     = os.environ.get('CINDERELLA_RELFRAC', "0.05") 
+CINDERELLA_STATUS      = CINDERELLA_LOGDIR + "/cinderella.status"
+CINDERELLA_HTMLSTATUS  = CINDERELLA_HTMLDIR + "/cinderella.html"
+
+# redefine the release fraction so that the filesystem redudancy is taken into account
+CINDERELLA_RELFRAC_CORRECTED = str(float(CINDERELLA_RELFRAC)/float(CINDERELLA_DATAREPLICA))
 
 # define the time t0 when we start in seconds (epoch time)
 tZero = int(time.time())
@@ -50,8 +54,8 @@ tLast = tNow
 # determine if cache needs to be release and, eventually, take action
 tNow = int(time.time())
 print '\n -=- CACHE RELEASE -=- Timing [sec]: last %d total %d'%(tNow-tLast,tNow-tZero)
-cmd = CINDERELLA_DIR + '/Core/releaseCache.py ' + CINDERELLA_RELTHR + ' ' + CINDERELLA_RELFRAC + ' ' + CINDERELLA_SAFEMODE \
-      +' >> ' + CINDERELLA_STATUS
+cmd = CINDERELLA_DIR + '/Core/releaseCache.py ' + CINDERELLA_RELTHR + ' ' + CINDERELLA_RELFRAC_CORRECTED \
+      + ' ' + CINDERELLA_SAFEMODE +' >> ' + CINDERELLA_STATUS
 print ' Execute: ' + cmd
 if (CINDERELLA_TESTING == "0"):
     os.system(cmd)
@@ -60,7 +64,7 @@ tLast = tNow
 # create an html page to show the cache status on web
 tNow = int(time.time())
 print '\n -=- HTML PAGE MAKING -=- Timing [sec]: last %d total %d'%(tNow-tLast,tNow-tZero)
-cmd = CINDERELLA_DIR + '/Core/makeCacheWebPage.py ' + CINDERELLA_RELFRAC + ' ' + CINDERELLA_HTMLSTATUS\
+cmd = CINDERELLA_DIR + '/Core/makeCacheWebPage.py ' + CINDERELLA_RELFRAC_CORRECTED + ' ' + CINDERELLA_HTMLSTATUS\
       +' >> ' + CINDERELLA_STATUS
 print ' Execute: ' + cmd
 if (CINDERELLA_TESTING == "0"):

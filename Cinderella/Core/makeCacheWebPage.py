@@ -37,7 +37,10 @@ def getStorageStatus():
 def makeHtmlBody(outputHtml,releaseAmount):
     # define the color string used to highlight the dataset that would
     # be deleted in case of a positive trigger of the cache release
-    colorString = ", null, {\'style\': \'color: red;\'}"
+    colorStringDanger = ", null, {\'style\': \'color: red;\'}"
+    # define the color string used to highlight the dataset that are
+    # currently not present in cache
+    colorStringDeleted = ", null, {\'style\': \'color: blue;\'}"
     freedSpaceSum = 0
     lineCounter = 0
     # loop on the ordered DB and dump the datasets into an html file
@@ -54,11 +57,16 @@ def makeHtmlBody(outputHtml,releaseAmount):
     for row in results:
         dataset = row[0]
         dbDataset = datasetStati.retrieveElement(dataset)
-        freedSpaceSum += dbDataset.size
-        # if dataset in danger zone highlight dataset with specific color
-        if (freedSpaceSum < releaseAmount):
-            thisLine = '  data.setCell(' + str(lineCounter) + ',0,\'' + dataset + '\'' + colorString + ');'
-        # otherwise use default color code
+        # dataset deletion will increase free space only if dataset is present in cache
+        if (dbDataset.inCache):
+            freedSpaceSum += dbDataset.size
+        # if dataset is not anymore in cache highlight dataset with specific color (blue)
+        if (not dbDataset.inCache):
+            thisLine = '  data.setCell(' + str(lineCounter) + ',0,\'' + dataset + '\'' + colorStringDeleted + ');'
+        # if dataset is in cache and in danger zone highlight dataset with specific color (red)
+        elif (dbDataset.inCache and freedSpaceSum < releaseAmount):
+            thisLine = '  data.setCell(' + str(lineCounter) + ',0,\'' + dataset + '\'' + colorStringDanger + ');'
+        # if dataset is in cache and not in danger zone use default color (black)
         else:
             thisLine = '  data.setCell(' + str(lineCounter) + ',0,\'' + dataset + '\');'
         outputHtml.write(thisLine + "\n")
@@ -85,6 +93,9 @@ def makeHtmlHeader(outputHtml):
 <font color="orange">Hints</font>:<br> 
 * You can sort the table, just click on the fields<br>
 * Pass the mouse around the cells and click it<br>
+<font color="green">Legend</font>:<br> 
+* <font color="blue">Blue datasets are not present in cache</font><br>
+* <font color="red">Red datasets are present in cache and in danger zone, i.e. will be deleted at the next deletion trigger</font><br>
 
 <script type="text/javascript"
 src="http://www.google.com/jsapi"></script>
