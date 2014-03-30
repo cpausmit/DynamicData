@@ -11,6 +11,7 @@ export CINDERELLA_DEBUG="1"
 export CINDERELLA_SAFEMODE="1"
 export CINDERELLA_WAIT="10800"                                                    # 10800 == 3 hours
 export CINDERELLA_DATA="/mnt/hadoop/cms/store/user/paus"
+export CINDERELLA_DATAREPLICA="2"
 export CINDERELLA_DIR="/usr/local/DynamicData/Cinderella"
 export CINDERELLA_LOGDIR="/var/log/DynamicData/Cinderella"
 export CINDERELLA_HTMLDIR="/home/cmsprod/public_html/dynamicdata"

@@ -34,6 +34,7 @@ CINDERELLA_DEBUG [flag: 0,1]    -> Set script in debug mode (regulate verbosity)
 CINDERELLA_SAFEMODE [flag: 0,1] -> Disable deletions. 
 CINDERELLA_WAIT [int]           -> Specify cycle length (in seconds)
 CINDERELLA_DATA [str]           -> Specify path to the cache base directory
+CINDERELLA_DATA_REPLICA [int]   -> Specify the replica factor of the storage file system
 CINDERELLA_DIR [str]            -> Specify cinderella package source code base directory
 CINDERELLA_LOGDIR [str]         -> Set log directory location
 CINDERELLA_HTMLDIR [str]        -> Set html directory location
