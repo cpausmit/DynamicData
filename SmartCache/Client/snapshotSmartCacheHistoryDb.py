@@ -4,6 +4,15 @@
 # --------------------------------------------------------------------------------------------------
 import os,MySQLdb
 
+startTime = 1800000000
+endTime = 0
+
+sparse = True
+output = False
+tInits = []
+tEnds = []
+rates = []
+
 # open database connection
 db = MySQLdb.connect(read_default_file="/etc/my.cnf",read_default_group="mysql",db="SmartCache")
 
@@ -41,12 +50,23 @@ try:
         totalTime += (ctim-time)
         totalSize += size
 
-        print "   %5.2f GB     %6.2f min  %6.3f MB/sec  %-80s"% \
-              (size,(ctim-time)/60.,size*1024./(ctim-time),book+'/'+dset+'/'+file)
+        if output:
+            print "   %5.2f GB     %6.2f min  %6.3f MB/sec  %-80s"% \
+                  (size,(ctim-time)/60.,size*1024./(ctim-time),book+'/'+dset+'/'+file)
 
+        # determine boundaries of performance plot
+        if time<startTime:
+            startTime = time
+        if time>endTime:
+            endTime = time
+
+        tInits.append(time)
+        tEnds.append(ctim)
+        rates.append(size*1024./(ctim-time))
+        
     print '-----------------------------------------------------------------------------------------'
-    print ' %6.2f GB    %8.2f min  %6.3f MB/sec   TOTALS'% \
-          (totalSize,totalTime/60.,totalSize*1024/totalTime)
+    print ' %6.2f GB    %8.2f min  TOTALS'% \
+          (totalSize,totalTime/60.)
     print ''
 
 except:
@@ -54,3 +74,39 @@ except:
 
 # disconnect from server
 db.close()
+
+# Create time series of the transfer speeds
+
+import itertools
+
+time = startTime
+lastRate = 0
+dots = True
+fHandle = open('timeSeriesOfRates.txt','w')
+while time < endTime:
+    presentRate = 0
+    nConnections = 0
+    for tInit, tEnd, rate in itertools.izip(tInits, tEnds, rates):
+        if tInit < time and tEnd > time:
+            nConnections += 1
+            presentRate += rate
+
+    if sparse:
+        if lastRate != 0 or presentRate != 0:
+            print ' Rate(%d) [MB/sec]: %f (nConn: %d)'%(time,presentRate,nConnections)
+            dots = True
+        elif lastRate == 0 and dots:
+            print ' .. '
+            dots = False
+    else:
+        print ' Rate(%d) [MB/sec]: %f (nConn: %d)'%(time,presentRate,nConnections)
+
+    # always create the output for root to make the plot
+    fHandle.write('%d %f %d\n'%(time,presentRate,nConnections))
+
+    # keep track of the last rate
+    lastRate = presentRate
+    time += 90
+
+fHandle.close()
+
