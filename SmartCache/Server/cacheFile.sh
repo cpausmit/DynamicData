@@ -31,7 +31,9 @@ requestT=$5
 # say where we are and what we do
 if ! [ -z $SMARTCACHE_DEBUG ]
 then
-  echo " ";echo " ==== JOB ENVIRONMENT ==== ";echo " "; whoami;id;/bin/hostname;pwd;ls -lhrt
+  echo " ";echo " ==== JOB ENVIRONMENT ==== ";echo " ";
+  echo " WHOAMI:"`whoami`; echo " ID:"`id`; echo "HOSTNAME "`/bin/hostname`;
+  echo " PWD "`pwd`; echo " ls -lhrt "; ls -lhrt
   echo " ";echo " ==== START JOB WITH ARGUMENTS: $* ====";echo " "
 fi
 
@@ -64,13 +66,13 @@ echo " "; echo "Initialize UI"; echo " "
 pwd
 pwd=`pwd`
 
-# legacy but works on 32 bit machines
-if [ "`uname -p`" != "x86_64" ]
-then
-  source /afs/cern.ch/cms/LCG/LCG-2/UI/cms_ui_env_3_1.sh
-else
-  source /afs/cern.ch/cms/LCG/LCG-2/UI/cms_ui_env.sh
-fi
+## legacy but works on 32 bit machines
+#if [ "`uname -p`" != "x86_64" ]
+#then
+#  source /afs/cern.ch/cms/LCG/LCG-2/UI/cms_ui_env_3_1.sh
+#else
+#  source /afs/cern.ch/cms/LCG/LCG-2/UI/cms_ui_env.sh
+#fi
 
 # make storage Urls for target (is always local) and source
 targetUrl="file:///$target"

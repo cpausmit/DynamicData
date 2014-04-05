@@ -26,9 +26,10 @@ sql = "select * from CompletedDownloads"
 try:
     # Execute the SQL command
     #print '\n Mysql> ' + sql
-    print ''
-    print '  File Size  Download time       Transfer  File'
-    print '-----------------------------------------------------------------------------------------'
+    if output:
+        print ''
+        print '  File Size  Download time       Transfer  File'
+        print '-----------------------------------------------------------------------------------------'
     cursor.execute(sql)
     # Fetch all the rows in a list of lists.
     results = cursor.fetchall()
@@ -64,10 +65,11 @@ try:
         tEnds.append(ctim)
         rates.append(size*1024./(ctim-time))
         
-    print '-----------------------------------------------------------------------------------------'
-    print ' %6.2f GB    %8.2f min  TOTALS'% \
-          (totalSize,totalTime/60.)
-    print ''
+    if output:
+        print '-----------------------------------------------------------------------------------------'
+        print ' %6.2f GB    %8.2f min  TOTALS'% \
+              (totalSize,totalTime/60.)
+        print ''
 
 except:
     print " Error (%s): unable to fetch data."%(sql)
@@ -93,13 +95,16 @@ while time < endTime:
 
     if sparse:
         if lastRate != 0 or presentRate != 0:
-            print ' Rate(%d) [MB/sec]: %f (nConn: %d)'%(time,presentRate,nConnections)
+            if output:
+                print ' Rate(%d) [MB/sec]: %f (nConn: %d)'%(time,presentRate,nConnections)
             dots = True
         elif lastRate == 0 and dots:
-            print ' .. '
+            if output:
+                print ' .. '
             dots = False
     else:
-        print ' Rate(%d) [MB/sec]: %f (nConn: %d)'%(time,presentRate,nConnections)
+        if output:
+            print ' Rate(%d) [MB/sec]: %f (nConn: %d)'%(time,presentRate,nConnections)
 
     # always create the output for root to make the plot
     fHandle.write('%d %f %d\n'%(time,presentRate,nConnections))
@@ -109,4 +114,3 @@ while time < endTime:
     time += 90
 
 fHandle.close()
-
