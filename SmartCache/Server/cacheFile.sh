@@ -6,9 +6,6 @@
 # TODO:
 #
 # - replace test whether file exists at the source with proper srm command, for now no test
-# - setp lcg-cp more generally
-# - target location is very specific, need to fix that
-# - source location is also not cleanly specified
 #
 #                                                                               v 1.0 (Jan 31, 2014)
 #                                                                             Ch.Paus (Nov 18, 2010)
@@ -31,16 +28,23 @@ requestT=$5
 # say where we are and what we do
 if ! [ -z $SMARTCACHE_DEBUG ]
 then
-  echo " ";echo " ==== JOB ENVIRONMENT ==== ";echo " ";
-  echo " WHOAMI:"`whoami`; echo " ID:"`id`; echo "HOSTNAME "`/bin/hostname`;
-  echo " PWD "`pwd`; echo " ls -lhrt "; ls -lhrt
-  echo " ";echo " ==== START JOB WITH ARGUMENTS: $* ====";echo " "
+  echo " "
+  echo " ==== JOB ENVIRONMENT ==== "
+  echo " "
+  echo " WHOAMI   "`whoami`
+  echo " ID       "`id`
+  echo " HOSTNAME "`/bin/hostname`
+  echo " PWD      "`pwd`
+  echo " ls -lhrt "
+  ls -lhrt
+  echo " "
+  echo " ==== START JOB WITH ARGUMENTS: $* ===="
+  echo " "
 fi
 
 # take care of the certificate
 if [ -e "./x509up_u`id -u`" ]
 then
-  #rm /tmp/x509up_u`id -u`
   export X509_USER_PROXY="./x509up_u`id -u`"
 fi
 echo " INFO -- using the x509 ticket: $X509_USER_PROXY"
@@ -61,19 +65,6 @@ then
   exit 0
 fi
 
-# file not yet in the cache, let's get it!
-echo " "; echo "Initialize UI"; echo " "
-pwd
-pwd=`pwd`
-
-## legacy but works on 32 bit machines
-#if [ "`uname -p`" != "x86_64" ]
-#then
-#  source /afs/cern.ch/cms/LCG/LCG-2/UI/cms_ui_env_3_1.sh
-#else
-#  source /afs/cern.ch/cms/LCG/LCG-2/UI/cms_ui_env.sh
-#fi
-
 # make storage Urls for target (is always local) and source
 targetUrl="file:///$target"
 sourceUrl="file:///$dataFile"
@@ -89,14 +80,6 @@ then
   sourceUrl="srm://${storageEle}:8443${storagePath}$dataFile"
 fi
 
-## test whether source is available
-#ssh paus@se01.cmsaf.mit.edu ls -1 $dataFile
-#if [ "$?" != "0" ]
-#then
-#  echo ' ERROR: requested source file does not exist or has error in access.'
-#  exit 1
-#fi
-
 # make the directory with right permissions
 echo " "; echo "Make directory"; echo " "
 mkdir -p    `dirname $target`
@@ -107,7 +90,7 @@ echo "$LCGCP -D srmv2 -b $sourceUrl $targetUrl.smartcache.$$"
 $LCGCP -D srmv2 -b  $sourceUrl $targetUrl.smartcache.$$
 if [ "$?" != "0" ]
 then
-  echo " ERROR ($h) - file copy failed for: $source/$file"
+  echo " ERROR ($h) - file copy failed for: $target"
   echo "              --> removing failed remainder ($dataFile.smartcache.$$)."
   rm $dataFile.smartcache.$$
   exit 1

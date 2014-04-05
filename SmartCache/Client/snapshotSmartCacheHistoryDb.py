@@ -2,10 +2,10 @@
 # --------------------------------------------------------------------------------------------------
 # Go to the database and show the full list of completed download requests (careful these are all).
 # --------------------------------------------------------------------------------------------------
-import os,MySQLdb
+import os, MySQLdb, time
 
 startTime = 1800000000
-endTime = 0
+endTime = time.time()
 
 sparse = True
 output = False
@@ -29,7 +29,8 @@ try:
     if output:
         print ''
         print '  File Size  Download time       Transfer  File'
-        print '-----------------------------------------------------------------------------------------'
+        print '--------------------------------------------------------------------------------' + \
+              '---------'
     cursor.execute(sql)
     # Fetch all the rows in a list of lists.
     results = cursor.fetchall()
@@ -58,15 +59,14 @@ try:
         # determine boundaries of performance plot
         if time<startTime:
             startTime = time
-        if time>endTime:
-            endTime = time
 
         tInits.append(time)
         tEnds.append(ctim)
         rates.append(size*1024./(ctim-time))
         
     if output:
-        print '-----------------------------------------------------------------------------------------'
+        print '--------------------------------------------------------------------------------' + \
+              '---------'
         print ' %6.2f GB    %8.2f min  TOTALS'% \
               (totalSize,totalTime/60.)
         print ''
@@ -77,7 +77,7 @@ except:
 # disconnect from server
 db.close()
 
-# Create time series of the transfer speeds
+# Create time series of the transfer speeds with constant intervals
 
 import itertools
 
@@ -93,6 +93,9 @@ while time < endTime:
             nConnections += 1
             presentRate += rate
 
+    # always create the output for root to make the plot
+    fHandle.write('%d %f %d\n'%(time,presentRate,nConnections))
+
     if sparse:
         if lastRate != 0 or presentRate != 0:
             if output:
@@ -105,9 +108,6 @@ while time < endTime:
     else:
         if output:
             print ' Rate(%d) [MB/sec]: %f (nConn: %d)'%(time,presentRate,nConnections)
-
-    # always create the output for root to make the plot
-    fHandle.write('%d %f %d\n'%(time,presentRate,nConnections))
 
     # keep track of the last rate
     lastRate = presentRate
