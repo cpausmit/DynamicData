@@ -4,8 +4,13 @@
 # --------------------------------------------------------------------------------------------------
 import os, MySQLdb, time
 
-startTime = 1800000000
-endTime = time.time()
+#startTime = 1800000000
+
+endTime   = time.time()
+#startTime = endTime - (28 * 7 * 24 * 3600);
+startTime = endTime - (7 * 24 * 3600);
+
+print ' Consider times between %d and %d only'%(startTime,endTime)
 
 sparse = True
 output = False
@@ -20,12 +25,13 @@ db = MySQLdb.connect(read_default_file="/etc/my.cnf",read_default_group="mysql",
 cursor = db.cursor()
 
 # Prepare SQL query to select a record from the database.
-sql = "select * from CompletedDownloads"
+sql = "select * from CompletedDownloads where StartDateUT>%d and CompletionDateUT>%d"% \
+      (startTime,startTime)
 
 # ! this could be done in one line but it is just nice to see what is deleted !
 try:
     # Execute the SQL command
-    #print '\n Mysql> ' + sql
+    print '\n Mysql> ' + sql
     if output:
         print ''
         print '  File Size  Download time       Transfer  File'
@@ -43,26 +49,33 @@ try:
         prio = row[3]
         time = row[4]
         stat = row[5]
-        ctim = row[6]
-        size = row[7]
+        stim = row[6]
+        ctim = row[7]
+        size = row[8]
+        host = row[9]
         # Now print fetched result
-        #print " --> file=%s, dset=%s, book=%s, prio=%d, time=%d, stat=%d, ctim=%d, size=%f"% \
-        #      (file,dset,book,prio,time,stat,ctim,size)
+        #print " --> file=%s dset=%s book=%s"%(file,dset,book) + \
+        #            " prio=%d time=%d stat=%d stim=%d ctim=%d size=%f host=%s"% \
+        #            (prio,time,stat,stim,ctim,size,host)
 
-        totalTime += (ctim-time)
+        # only consider entries that are in our time range (should be done at SQL level)
+        if ctim < startTime or stim < startTime:
+            continue
+
+        totalTime += (ctim-stim)
         totalSize += size
 
         if output:
             print "   %5.2f GB     %6.2f min  %6.3f MB/sec  %-80s"% \
-                  (size,(ctim-time)/60.,size*1024./(ctim-time),book+'/'+dset+'/'+file)
+                  (size,(ctim-stim)/60.,size*1024./(ctim-stim),book+'/'+dset+'/'+file)
 
-        # determine boundaries of performance plot
-        if time<startTime:
-            startTime = time
+        ## determine boundaries of performance plot
+        #if stim<startTime:
+        #    startTime = stim
 
-        tInits.append(time)
+        tInits.append(stim)
         tEnds.append(ctim)
-        rates.append(size*1024./(ctim-time))
+        rates.append(size*1024./(ctim-stim))
         
     if output:
         print '--------------------------------------------------------------------------------' + \
@@ -77,8 +90,10 @@ except:
 # disconnect from server
 db.close()
 
+#------------------------------------------------------------------
 # Create time series of the transfer speeds with constant intervals
-
+#------------------------------------------------------------------
+# this is not adequate for a month (3600*24*28 /90 =  
 import itertools
 
 time = startTime

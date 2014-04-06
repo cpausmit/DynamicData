@@ -31,7 +31,7 @@ jobId=`date +%j%m%d%k%M%S`
 if ! [ -z $SMARTCACHE_DEBUG ]
 then
   echo " "
-  echo "  Download request: file=$file dataset=$dataset, book=$book, priority=$priority, requestT=$requestT"
+  echo " Request: file=$file dataset=$dataset, book=$book, priority=$priority, requestT=$requestT"
   echo " "
 fi
 
@@ -52,7 +52,7 @@ fi
  
 cat > submit.cmd <<EOF
 Universe                = vanilla
-Requirements            = ((Arch == "INTEL") && (Disk >= DiskUsage) && ((Memory * 1024) >= ImageSize) && (HasFileTransfer))
+Requirements            = Arch == "INTEL" && Disk >= DiskUsage && (Memory * 1024) >= ImageSize && HasFileTransfer
 Notification            = Error
 Executable              = $script
 Arguments               = $file $dataset $book $priority $requestT
@@ -72,6 +72,7 @@ EOF
 if ! [ -z "$SMARTCACHE_DEBUG" ]
 then
   condor_submit submit.cmd
+  rm submit.cmd
 else
   condor_submit submit.cmd >& /dev/null;
   rm submit.cmd

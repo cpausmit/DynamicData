@@ -29,7 +29,7 @@ echo ""
 # get all files from the catalog
 files=`cat $CATALOG/$BOOK/$DATASET/Files | grep -v ^# | cut -d' ' -f2`
 nFiles=`wc -l $CATALOG/$BOOK/$DATASET/Files | cut -d' ' -f1`
-echo " --> found $nFiles. Checking availability and add to requests."
+echo " --> found $nFiles in catalog. Checking availability and add to requests."
 
 # create a list of existing file to avoid load on $DATA directory
 exisitingFileLists=/tmp/$DATASET.$$
@@ -43,12 +43,11 @@ do
   exists=`grep $file $exisitingFileLists`
   if [ ".$exists" == "." ]
   then
-    #echo " Adding: $file"
     missingFiles="$missingFiles $file"
   fi
 done
 nFiles=`echo $missingFiles | wc -w`
-echo " --> found $nFiles missing, add them to the request table."
+echo " --> found $nFiles missing in local cache, add them to the request table."
 echo ""
 read -p " Do you wish to continue? [N/y] " yn
 if [ "$yn" != "y" ] && [ "$yn" != "Y" ] 
@@ -62,8 +61,6 @@ for file in $missingFiles
 do
   cmd="$SMARTCACHE_DIR/Client/addDownloadRequest.py --file=$file  --dataset=$DATASET --book=$BOOK"
   fullFile="$DATA/$BOOK/$DATASET/$file"
-  #echo " Adding: $fullFile"
-  #echo " -> $cmd"
   $cmd
 done
 

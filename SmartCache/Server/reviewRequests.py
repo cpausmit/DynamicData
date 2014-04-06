@@ -87,6 +87,8 @@ try:
     print '\n Mysql> ' + sql
     cursor.execute(sql)
     # Fetch all the rows in a list of lists.
+
+    # Fetch all the rows in a list of lists.
     results = cursor.fetchall()
     for row in results:
         file = row[0]
@@ -95,26 +97,34 @@ try:
         prio = row[3]
         time = row[4]
         stat = row[5]
+        stim = row[6]
+        ctim = row[7]
+        size = row[8]
+        host = row[9]
         # Now print fetched result
-        print " --> file=%s, dset=%s, book=%s, prio=%d, time=%d, stat=%d"% \
-              (file,dset,book,prio,time,stat)
+        print " --> file=%s dset=%s book=%s"% \
+              (file,dset,book) + \
+              " prio=%d time=%d stat=%d stim=%d ctim=%d size=%f host=%s"% \
+              (prio,time,stat,stim,ctim,size,host)
 
         # before removing this Download request create history in CompletedDownloads table
         # --------------------------------------------------------------------------------
-        # - record time
-        completionTime = startTime
-        # - find file size and download status
-        sizeGb = 0
-        fullFile = SMARTCACHE_DATA + '/' + book + '/' + dset + '/' + file
-        if os.path.isfile(fullFile):
-            sizeBytes = os.path.getsize(fullFile)
-            sizeGb = float(sizeBytes)/1024./1024./1024.
-            stat = 0  # overwriting the status (now it reflects the completion of download)
-        else:
-            print ' File does not exist, download failed: ' + fullFile
+        # teh record has already been updated by the download process
+        ## - record time
+        #completionTime = startTime
+        ## - find file size and download status
+        #sizeGb = 0
+        #fullFile = SMARTCACHE_DATA + '/' + book + '/' + dset + '/' + file
+        #if os.path.isfile(fullFile):
+        #    sizeBytes = os.path.getsize(fullFile)
+        #    sizeGb = float(sizeBytes)/1024./1024./1024.
+        #    stat = 0  # overwriting the status (now it reflects the completion of download)
+        #else:
+        #    print ' File does not exist, download failed: ' + fullFile
+
         # - insert into our CompletedDownload table
-        sql="insert into CompletedDownloads values ('%s','%s','%s',%d,%d,%d,%d,%f);"%\
-             (file,dset,book,prio,time,stat,completionTime,sizeGb)
+        sql="insert into CompletedDownloads values ('%s','%s','%s',%d,%d,%d,%d,%d,%f,'%s');"%\
+             (file,dset,book,prio,time,stat,stim,ctim,size,host)
         try:
             # Execute the SQL command
             print '        ' + sql

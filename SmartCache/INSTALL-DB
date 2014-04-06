@@ -142,16 +142,70 @@ mysqladmin -h localhost -u root -pRootPassword create SmartCache
 
 mysql -h localhost -u root -pRootPassword
  mysql> use SmartCache;
- mysql> create table Downloads (File char(80),Dataset char(80),Book char(80), Priority int, EntryDateUT int, Status int);
+ mysql> create table Downloads (
+          File char(80),
+          Dataset char(80),
+          Book char(80),
+          Priority int,
+          EntryDateUT int,
+          Status int,
+          StartDateUT int default 0,
+          CompletionDateUT int default 0,
+          SizeGb float default 0,
+          Host char(20) default ''
+        );
 
 # insert new download requests into the table and check them
 
 mysql -h localhost -u root -pRootPassword
   mysql> use SmartCache;
-  mysql> insert into Downloads values ('00FC73F6-74FA-E111-B096-003048D15DDA.root','s12-h125gg-gf-v7a','filefi/029',0,1367547967,0);
-  mysql> insert into Downloads values ('045EB352-6EFA-E111-845C-003048678B34.root','s12-h125gg-gf-v7a','filefi/029',0,1367547967,0);
+  mysql> insert into Downloads values (
+           '00FC73F6-74FA-E111-B096-003048D15DDA.root','s12-h125gg-gf-v7a','filefi/029',
+           0,1367547967,0,default,default,default,default
+         );
+  mysql> insert into Downloads values (
+           '045EB352-6EFA-E111-845C-003048678B34.root','s12-h125gg-gf-v7a','filefi/029',
+           0,1367547967,0,default,default,default,default
+         );
   mysql> select * from Downloads;
 
 # no entries are to be deleted or added from this table (it is filled by the daemon itself)
 
-  mysql> create table CompletedDownloads (File char(80),Dataset char(80),Book char(80), Priority int, EntryDateUT int, Status int, CompletionDateUT int, SizeGb float);
+  mysql> create table CompletedDownloads (
+           File char(80),
+           Dataset char(80),
+           Book char(80),
+           Priority int,
+           EntryDateUT int,
+           Status int,
+           CompletionDateUT int,
+           SizeGb float
+         );
+
+
+#-----------------------------------------
+# Start mysql and go to the right database
+#-----------------------------------------
+mysql -h localhost -u root -p
+
+  use SmartCache;
+ 
+#-----------------------------------------------------
+# Update our existing download table to the new format
+#-----------------------------------------------------
+# add the new columns
+  alter table Downloads add StartDateUT int default 0;
+  alter table Downloads add CompletionDateUT int default 0;
+  alter table Downloads add SizeGb float default 0.0;
+  alter table Downloads add Host char(20) default '';
+
+#----------------------------------------------------
+# Update our existing history table to the new format
+#----------------------------------------------------
+# add the new columns
+  alter table CompletedDownloads add StartDateUT int default 0 after Status;
+  alter table CompletedDownloads add Host char(20) default '';
+# add the close to proper values for the StartDateUT (of course not correct but close enough)
+  update CompletedDownloads set StartDateUT=EntryDateUT;
+# update hostname to something more correct
+  update CompletedDownloads set Host='t3btch.mit.edu';

@@ -12,11 +12,10 @@
 #---------------------------------------------------------------------------------------------------
 h=`basename $0`; id=`id -u`
 LCGCP='lcg-cp';
+hostname=`hostname | tr [A-Z] [a-z]`
 
-if [ -z "$SMARTCACHE_DATA" ]
-then
-  SMARTCACHE_DATA=/mnt/hadoop/cms/store/user/paus
-fi
+[ -z "$SMARTCACHE_DATA" ] && ( SMARTCACHE_DATA=/mnt/hadoop/cms/store/user/paus )
+[ -z "$SMARTCACHE_DIR" ] && ( SMARTCACHE_DIR=/home/cmsprod/DynamicData/SmartCache )
 
 # command line parameters
     file=$1
@@ -87,16 +86,42 @@ chmod ug+wx `dirname $target`
 
 echo " "; echo "Starting download now"; echo " "
 echo "$LCGCP -D srmv2 -b $sourceUrl $targetUrl.smartcache.$$"
+
+# make sure to register start time and hostwitht he database
+echo "
+$SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
+                                        --startTime --host=$hostname
+"
+$SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
+                                        --startTime --host=$hostname
+
+# start download
 $LCGCP -D srmv2 -b  $sourceUrl $targetUrl.smartcache.$$
 if [ "$?" != "0" ]
 then
   echo " ERROR ($h) - file copy failed for: $target"
   echo "              --> removing failed remainder ($dataFile.smartcache.$$)."
   rm $dataFile.smartcache.$$
+  echo "
+  $SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
+                                          --completionTime --sizeGb=-0.000001
+  "
+  $SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
+                                          --completionTime --sizeGb=-0.000001
   exit 1
-else
-  echo " SUCCESS ($h) - copy worked."
-fi 
+fi
+
+echo " SUCCESS ($h) - copy worked."
+# move file in final location
 mv $dataFile.smartcache.$$ $dataFile
 
+# enter the relevant parameters
+sizeBytes=`ls -s --block-size=1 $target | cut -d' ' -f1`
+sizeGb=`echo $sizeBytes | awk '{ print $1/1024/1024/1024}'`
+echo "
+$SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
+                                        --completionTime --sizeGb=$sizeGb
+"
+$SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
+                                        --completionTime --sizeGb=$sizeGb
 exit 0

@@ -27,9 +27,15 @@ try:
         prio = row[3]
         time = row[4]
         stat = row[5]
+        stim = row[6]
+        ctim = row[7]
+        size = row[8]
+        host = row[9]
         # Now print fetched result
-        print " --> file=%s, dset=%s, book=%s, prio=%d, time=%d, stat=%d"% \
-              (file,dset,book,prio,time,stat)
+        print " --> file=%s dset=%s book=%s"% \
+              (file,dset,book) + \
+              " prio=%d time=%d stat=%d stim=%d ctim=%d size=%f host=%s"% \
+              (prio,time,stat,stim,ctim,size,host)
 
 except:
     print " Error ($s): unable to fetch data."%(sql)

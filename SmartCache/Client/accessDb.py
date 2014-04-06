@@ -11,7 +11,7 @@ db = MySQLdb.connect(read_default_file="/etc/my.cnf",read_default_group="mysql",
 cursor = db.cursor()
 
 # Prepare SQL query to select a record from the database.
-sql = "SELECT * FROM Downloads"
+sql = "select * from Downloads"
 
 try:
     # Execute the SQL command
@@ -25,8 +25,13 @@ try:
         prio = row[3]
         time = row[4]
         stat = row[5]
+        stim = row[6]
+        ctim = row[7]
+        size = row[8]
+        host = row[9]
         # Now print fetched result
-        print "file=%s, dset=%s, book=%s, prio=%d, time=%d stat=%d"%(file,dset,book,prio,time,stat)
+        print "file=%s dset=%s book=%s prio=%d time=%d stat=%d"%(file,dset,book,prio,time,stat) + \
+              " stim=%d ctim=%d size=%f host=%s"%(stim,ctim,size,host)
 
 except:
     print " Error (%s): unable to fetch data."%(sql)

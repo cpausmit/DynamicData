@@ -3,18 +3,15 @@
 # Status tool that will only work once executed on our cluster (condor must be accessible). If
 # the environment variable N_ENTRIES is set it will use its value the default is 10 entries.
 # --------------------------------------------------------------------------------------------------
-if [ -z "$SMARTCACHE_DIR" ]
-then
-  SMARTCACHE_DIR=/usr/local/DynamicData/SmartCache
-fi
+[ -z "$SMARTCACHE_DIR" ] && ( SMARTCACHE_DIR=/usr/local/DynamicData/SmartCache )
 
-N_ENTRIES=$1
-if [ -z "$N_ENTRIES" ]
+N_ENTRIES="$1"
+if [ ".$N_ENTRIES" == "." ]
 then
   N_ENTRIES=10
 fi
 
-condor_q 2> /dev/null
+condor_q 2> /dev/null | tail -$N_ENTRIES
 
 if [ "$?" == "0" ]
 then
@@ -37,6 +34,7 @@ echo " ============================="
 
 $SMARTCACHE_DIR/Client/snapshotSmartCacheDb.py >& /tmp/sc.$$.tmp
 head -$N_ENTRIES  /tmp/sc.$$.tmp
+
 nRequests=`grep '.root' /tmp/sc.$$.tmp | wc -l`
 rm /tmp/sc.$$.tmp
 

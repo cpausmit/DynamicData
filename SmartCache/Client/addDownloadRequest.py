@@ -87,7 +87,10 @@ if len(results) > 0:
     sys.exit(0)
 
 # Prepare SQL query to INSERT a new record into the database.
-sql = "insert into Downloads(File,Dataset,Book,Priority,EntryDateUT,Status) values('%s','%s','%s','%d','%d',0)"%(file,dataset,book,priority,time)
+sql = "insert into Downloads(File,Dataset,Book,Priority,EntryDateUT,Status," + \
+      "StartDateUT,CompletionDateUT,SizeGb,Host)" + \
+      " values('%s','%s','%s','%d','%d',0,default,default,default,default)"% \
+        (file,dataset,book,priority,time)
 
 print ' insert: ' + sql
 try:
