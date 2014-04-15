@@ -7,8 +7,8 @@ import os, MySQLdb, time
 #startTime = 1800000000
 
 endTime   = time.time()
-#startTime = endTime - (28 * 7 * 24 * 3600);
-startTime = endTime - (7 * 24 * 3600);
+startTime = endTime - (28 * 24 * 3600);
+#startTime = endTime - (7 * 24 * 3600);
 
 print ' Consider times between %d and %d only'%(startTime,endTime)
 

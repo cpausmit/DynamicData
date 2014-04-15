@@ -11,7 +11,8 @@
 #                                                                             Ch.Paus (Nov 18, 2010)
 #---------------------------------------------------------------------------------------------------
 h=`basename $0`; id=`id -u`
-LCGCP='lcg-cp';
+LCGCP='lcg-cp -D srmv2 -b';
+XRDCP='xrdcp -s';
 hostname=`hostname | tr [A-Z] [a-z]`
 
 [ -z "$SMARTCACHE_DATA" ] && ( SMARTCACHE_DATA=/mnt/hadoop/cms/store/user/paus )
@@ -79,6 +80,10 @@ then
   sourceUrl="srm://${storageEle}:8443${storagePath}$dataFile"
 fi
 
+# construct equivalent xrootd location
+xrdDataFile=`echo $dataFile | sed 's#/mnt/hadoop/cms##'`
+sourceXrd="root://xrootd.unl.edu/$xrdDataFile"
+
 # make the directory with right permissions
 echo " "; echo "Make directory"; echo " "
 mkdir -p    `dirname $target`
@@ -94,14 +99,19 @@ $SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$
 "
 $SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
                                         --startTime --host=$hostname
-
 # start download
-$LCGCP -D srmv2 -b  $sourceUrl $targetUrl.smartcache.$$
+echo " copy: $LCGCP $sourceUrl $targetUrl.smartcache.$$"
+$LCGCP $sourceUrl $targetUrl.smartcache.$$
+
+#$XRDCP $sourceXrd $targetUrl.xrdcp.$$
+
 if [ "$?" != "0" ]
 then
   echo " ERROR ($h) - file copy failed for: $target"
   echo "              --> removing failed remainder ($dataFile.smartcache.$$)."
+  echo " remove: rm $dataFile.smartcache.$$"
   rm $dataFile.smartcache.$$
+  #rm $dataFile.xrdcp.$$
   echo "
   $SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
                                           --completionTime --sizeGb=-0.000001
@@ -113,7 +123,9 @@ fi
 
 echo " SUCCESS ($h) - copy worked."
 # move file in final location
+echo " move: mv $dataFile.smartcache.$$ $dataFile"
 mv $dataFile.smartcache.$$ $dataFile
+#mv $dataFile.xrdcp.$$ $dataFile
 
 # enter the relevant parameters
 sizeBytes=`ls -s --block-size=1 $target | cut -d' ' -f1`

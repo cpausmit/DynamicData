@@ -1,0 +1,8 @@
+[Unit]
+Description=Service Description for the SmartCache Server
+
+[Service]
+ExecStart=/usr/local/DynamicData/SmartCache/Server/smartcached
+
+[Install]
+WantedBy=multi-user.target
