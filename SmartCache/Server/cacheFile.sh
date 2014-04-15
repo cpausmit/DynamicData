@@ -31,6 +31,7 @@ then
   echo " "
   echo " ==== JOB ENVIRONMENT ==== "
   echo " "
+  echo " DATE     "`date`
   echo " WHOAMI   "`whoami`
   echo " ID       "`id`
   echo " HOSTNAME "`/bin/hostname`

@@ -109,7 +109,7 @@ try:
 
         # before removing this Download request create history in CompletedDownloads table
         # --------------------------------------------------------------------------------
-        # teh record has already been updated by the download process
+        # the record has already been updated by the download process
         ## - record time
         #completionTime = startTime
         ## - find file size and download status
