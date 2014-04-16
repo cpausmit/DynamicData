@@ -7,8 +7,8 @@ import os, MySQLdb, time
 #startTime = 1800000000
 
 endTime   = time.time()
-startTime = endTime - (28 * 24 * 3600);
-#startTime = endTime - (7 * 24 * 3600);
+# never show anything older than ~1 month (30 days) to avoid huge calulations
+startTime = endTime - (30 * 24 * 3600);
 
 print ' Consider times between %d and %d only'%(startTime,endTime)
 
@@ -53,12 +53,12 @@ try:
         ctim = row[7]
         size = row[8]
         host = row[9]
-        # Now print fetched result
+        # Print fetched result
         #print " --> file=%s dset=%s book=%s"%(file,dset,book) + \
         #            " prio=%d time=%d stat=%d stim=%d ctim=%d size=%f host=%s"% \
         #            (prio,time,stat,stim,ctim,size,host)
 
-        # only consider entries that are in our time range (should be done at SQL level)
+        # only consider entries that are in our time range (already done in SQL but do it again)
         if ctim < startTime or stim < startTime:
             continue
 
@@ -68,10 +68,6 @@ try:
         if output:
             print "   %5.2f GB     %6.2f min  %6.3f MB/sec  %-80s"% \
                   (size,(ctim-stim)/60.,size*1024./(ctim-stim),book+'/'+dset+'/'+file)
-
-        ## determine boundaries of performance plot
-        #if stim<startTime:
-        #    startTime = stim
 
         tInits.append(stim)
         tEnds.append(ctim)

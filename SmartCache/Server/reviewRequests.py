@@ -101,28 +101,46 @@ try:
         ctim = row[7]
         size = row[8]
         host = row[9]
-        # Now print fetched result
+        # print fetched result
         print " --> file=%s dset=%s book=%s"% \
               (file,dset,book) + \
               " prio=%d time=%d stat=%d stim=%d ctim=%d size=%f host=%s"% \
               (prio,time,stat,stim,ctim,size,host)
 
-        # before removing this Download request create history in CompletedDownloads table
-        # --------------------------------------------------------------------------------
-        # the record has already been updated by the download process
-        ## - record time
-        #completionTime = startTime
-        ## - find file size and download status
-        #sizeGb = 0
-        #fullFile = SMARTCACHE_DATA + '/' + book + '/' + dset + '/' + file
-        #if os.path.isfile(fullFile):
-        #    sizeBytes = os.path.getsize(fullFile)
-        #    sizeGb = float(sizeBytes)/1024./1024./1024.
-        #    stat = 0  # overwriting the status (now it reflects the completion of download)
-        #else:
-        #    print ' File does not exist, download failed: ' + fullFile
+        # check whether the transfer worked
+        resubmit = 0
+        if host == "":
+            resubmit = 1
+            print ' Error in download request. Download host did not register in database.'
+            if size > 0.0001 and ctim > 0:
+                print ' WARNING - file seems to have arrived though? this should never happen.'
+            else:
+                print ' Error - continued. File did not download. Considering re-submission.'
+        else:
+            if size < 0.0001 or ctim == 0:
+                print ' Error - file failed download on host: ' + host + \
+                      ' Considering re-submission.'
+                resubmit = 1
 
-        # - insert into our CompletedDownload table
+        # testing details of failed transfer update record and decide if re-submit needed
+        if resubmit == 1:
+            # test the status here (this happens only in exceptional cases == failures)
+            # - record time
+            # - find file size and download status
+            completionTime = startTime
+            sizeGb = 0
+            fullFile = SMARTCACHE_DATA + '/' + book + '/' + dset + '/' + file
+            if os.path.isfile(fullFile):
+                sizeBytes = os.path.getsize(fullFile)
+                sizeGb = float(sizeBytes)/1024./1024./1024.
+                # maybe should test file size here? but against what?
+                ctim = completionTime # approximate completion time (+ cycle time max)
+                stat = 0              # overwriting status (reflects the fix)
+                resubmit = 0
+            else:
+                print ' File does not exist, download failed: ' + fullFile
+
+        # insert into our CompletedDownload table (failed or successfully completed)
         sql="insert into CompletedDownloads values ('%s','%s','%s',%d,%d,%d,%d,%d,%f,'%s');"%\
              (file,dset,book,prio,time,stat,stim,ctim,size,host)
         try:
@@ -135,7 +153,6 @@ try:
             print " Error (%s): unable to insert record into CompletedDownload table."%(sql)
 
         # remove all matching download requests from the Downloads table
-        # --------------------------------------------------------------
         sql="delete from Downloads where Status=2 and File='%s' and Dataset='%s'and Book='%s';"%\
              (file,dset,book)
         try:
@@ -148,6 +165,30 @@ try:
             print " Error (%s): unable to update status."%(sql)
             # Rollback in case there is any error
             db.rollback()
+
+        # take care of failed requests (this is dangerous is everything fails, needs safety)
+        if resubmit == 1:
+            # new submission time
+            time = int(time.time())
+            # Submit the download request
+            cmd = SMARTCACHE_DIR + '/Client/addDownloadRequest.sh --file=' + \
+                  file + ' --dataset=' + dset + ' --book=' + book
+            print ' WARNING - DANGEROUS RECOVERY LOOP IN ACTION -- Execute: ' + cmd
+            os.system(cmd)
+    
+            # Update status information in the table
+            sql="update Downloads set Status=1 where File='%s' and Dataset='%s'and Book='%s';"%\
+                 (file,dset,book)
+            try:
+                # Execute the SQL command
+                cursor.execute(sql)
+                # Commit your changes in the database
+                db.commit()
+            except:
+                print " Error (%s): unable to update status."%(sql)
+                # Rollback in case there is any error
+                db.rollback()
+            
 
 except:
     print " Error (%s): unable to fetch data."%(sql)
