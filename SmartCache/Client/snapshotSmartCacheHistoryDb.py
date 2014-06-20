@@ -47,28 +47,35 @@ try:
         dset = row[1]
         book = row[2]
         prio = row[3]
-        time = row[4]
+        time = int(row[4])
         stat = row[5]
-        stim = row[6]
-        ctim = row[7]
-        size = row[8]
+        stim = int(row[6])
+        ctim = int(row[7])
+        size = float(row[8])
         host = row[9]
-        # Print fetched result
-        #print " --> file=%s dset=%s book=%s"%(file,dset,book) + \
-        #            " prio=%d time=%d stat=%d stim=%d ctim=%d size=%f host=%s"% \
-        #            (prio,time,stat,stim,ctim,size,host)
-
+        ## Print fetched result
+        ##print " --> file=%s dset=%s book=%s"%(file,dset,book) + \
+        ##            " prio=%d time=%d stat=%d stim=%d ctim=%d size=%f host=%s"% \
+        ##            (prio,time,stat,stim,ctim,size,host)
+        #
         # only consider entries that are in our time range (already done in SQL but do it again)
         if ctim < startTime or stim < startTime:
             continue
-
+        
+        # make sure entry makes sense
+        if ctim <= stim:
+            if output:
+                print ' WARNING - completion time (%d) is earlier or equal than start time (%d): '%\
+                      (ctim,stim)
+            continue
+        
         totalTime += (ctim-stim)
         totalSize += size
-
+        
         if output:
             print "   %5.2f GB     %6.2f min  %6.3f MB/sec  %-80s"% \
                   (size,(ctim-stim)/60.,size*1024./(ctim-stim),book+'/'+dset+'/'+file)
-
+        
         tInits.append(stim)
         tEnds.append(ctim)
         rates.append(size*1024./(ctim-stim))
