@@ -66,6 +66,7 @@ Log                     = $book/$dataset/${file}.log
 transfer_input_files    = $x509File
 should_transfer_files   = YES
 when_to_transfer_output = ON_EXIT
++AccountingGroup        = "group_cmsuser.$USER"
 Queue
 EOF
 
