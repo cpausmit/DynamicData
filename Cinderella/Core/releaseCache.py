@@ -50,12 +50,11 @@ def getRemovableDatasets(releaseAmount):
         if (not dbDataset.inCache):
             continue
         freedSpaceSum += dbDataset.size
+        # add add this dataset to the list of removable ones
+        removableDatasets.append(dataset)
         # if size of removable datasets exceeds release amount stop
         if (freedSpaceSum > releaseAmount):
             break
-        # otherwise add this dataset to the list of removable ones
-        else:
-            removableDatasets.append(dataset)
     return removableDatasets 
 
 def getStorageStatus():
