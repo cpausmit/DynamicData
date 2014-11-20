@@ -144,7 +144,7 @@ mysql -h localhost -u root -pRootPassword
  mysql> use SmartCache;
  mysql> create table Downloads (
           File char(80),
-          Dataset char(80),
+          Dataset varchar(240),
           Book char(80),
           Priority int,
           EntryDateUT int,
@@ -173,7 +173,7 @@ mysql -h localhost -u root -pRootPassword
 
   mysql> create table CompletedDownloads (
            File char(80),
-           Dataset char(80),
+           Dataset varchar(240),
            Book char(80),
            Priority int,
            EntryDateUT int,
