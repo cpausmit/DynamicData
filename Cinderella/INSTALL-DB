@@ -39,7 +39,7 @@ mysql -h localhost -u root -pRootPassword
  mysql> use Cinderella;
  # if you want to delete the entire table and start from scratch
  mysql> drop   table DatasetStatus;
- mysql> create table DatasetStatus (Name char(80), NUsed int, NDownloads int, InCache bool, EntryDateUT int);
+ mysql> create table DatasetStatus (Name varchar(240), NUsed int, NDownloads int, InCache bool, EntryDateUT int);
  # make sure a dataset remains unique (it is our key)
  mysql> alter  table DatasetStatus add unique index(Name);
 
