@@ -91,6 +91,7 @@ Inputs
     safemode -> disable deletions 
 
 This script determines if there is need to release the cache and performs the release. A release is triggered if the storage occupancy goes above the threshold, specified by the user. The amount of deleted datasets depends on the released fraction, specified by the user, which corresponds to the amount of cache space that is freed once the release is issued. The determination of the sets of datasets to be removed depends on their ranking. Note that deleted datasets are not removed from the dataset database, but their record is updated accordingly (a deleted datasets corresponds to a record with 'InCache=False'). 
+In addition, dataset deletions are registered into a dedicated table in order to preserve historical data of cache release.
 
 makeCacheWebPage.py
 ------------

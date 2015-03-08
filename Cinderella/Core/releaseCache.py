@@ -94,6 +94,7 @@ def releaseCache(executeRelease,datasetsToRemove):
             deleteDataset(dataset)
             dbDataset = datasetStati.retrieveElement(dataset)
             updateDataset(dataset,dbDataset.nUsed,dbDataset.nDownloads,dbDataset.time,dbDataset.size)
+            updateDatasetHistory(dataset,dbDataset.nDownloads,dbDataset.size)
         return
     else:
         print " INFO - user setting prevented deletions. "
@@ -111,6 +112,26 @@ def updateDataset(dataset,nDatasetAccesses,nDatasetDownloads,atime,size):
         return
     except:
         print ' ERROR -- update failed, rolling back.'
+        # Rollback in case there is any error
+        db.rollback()
+        db.disco()
+        os._exit(1)
+
+def updateDatasetHistory(dataset,nDatasetDownloads,size):
+    # update the datasets table history to record this deletion
+    # deletion cycle is equal to the number of previous dataset downloads
+    # deletion time is corresponding to the insertion in the DB history table 
+    # prepare SQL query to INSERT a record into the history database.
+    deltime = int(time.time())
+    sql  = "INSERT INTO CompletedDeletions VALUES ('%s','%d','%d','%f')"\
+           %(dataset,nDatasetDownloads,deltime,size)
+    print ' insert: ' + sql
+    try:
+        # Execute the SQL command
+        cursor.execute(sql)
+        return
+    except:
+        print ' ERROR -- insert failed, rolling back.'
         # Rollback in case there is any error
         db.rollback()
         db.disco()

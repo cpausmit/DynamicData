@@ -39,7 +39,7 @@ mysql -h localhost -u root -pRootPassword
  mysql> use Cinderella;
  # if you want to delete the entire table and start from scratch
  mysql> drop   table DatasetStatus;
- mysql> create table DatasetStatus (Name varchar(240), NUsed int, NDownloads int, InCache bool, EntryDateUT int);
+ mysql> create table DatasetStatus (Name varchar(240), NUsed int, NDownloads int, InCache bool, EntryDateUT int, Size float);
  # make sure a dataset remains unique (it is our key)
  mysql> alter  table DatasetStatus add unique index(Name);
 
@@ -49,3 +49,18 @@ mysql
   mysql> use Cinderella;
   mysql> insert into DatasetStatus values ('filefi/029/r12b-dph-j22-v1',0,0,true,1391911113);
   mysql> select * from DatasetStatus;
+
+# define new table (DatasetStatus)
+
+mysql -h localhost -u root -pRootPassword
+ mysql> use Cinderella;
+ # if you want to delete the entire table and start from scratch
+ mysql> drop   table CompletedDeletions;
+ mysql> create table CompletedDeletions (Name varchar(240), DeletionCycle int, DeletionDateUT int, Size float);
+
+# insert new deletion requests into the table and check them
+
+mysql
+  mysql> use Cinderella;
+  mysql> insert into CompletedDeletions values ('filefi/029/r12b-dph-j22-v1',0,0,1391911113);
+  mysql> select * from CompletedDeletions;
