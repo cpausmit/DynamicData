@@ -48,6 +48,9 @@ x509File=/tmp/x509up_u`id -u`
 if ! [ -z "$SMARTCACHE_DEBUG" ]
 then
   echo "   $script $file $dataset $book $priority $requestT"
+  echo " "
+  echo "    --> working directory: $PWD"
+  echo " "
 fi
  
 cat > submit.cmd <<EOF

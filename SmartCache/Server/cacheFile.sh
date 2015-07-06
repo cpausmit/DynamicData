@@ -1,5 +1,6 @@
 #!/bin/bash
 #---------------------------------------------------------------------------------------------------
+#
 # Download exactly one file, either interactively or submitting to condor batch system. Download
 # is based on lcg-cp which we setup via /afs/cern.ch.
 #
@@ -10,10 +11,10 @@
 #                                                                               v 1.0 (Jan 31, 2014)
 #                                                                             Ch.Paus (Nov 18, 2010)
 #---------------------------------------------------------------------------------------------------
-h=`basename $0`; id=`id -u`
+#env
+h=`basename $0`; id=`id -u`; hostname=`hostname | tr [A-Z] [a-z]`
 LCGCP='lcg-cp -D srmv2 -b';
 XRDCP='xrdcp -s';
-hostname=`hostname | tr [A-Z] [a-z]`
 
 [ -z "$SMARTCACHE_DATA" ] && ( SMARTCACHE_DATA=/mnt/hadoop/cms/store/user/paus )
 [ -z "$SMARTCACHE_DIR" ] && ( SMARTCACHE_DIR=/home/cmsprod/DynamicData/SmartCache )
@@ -69,6 +70,7 @@ fi
 # make storage Urls for target (is always local) and source
 targetUrl="file:///$target"
 sourceUrl="file:///$dataFile"
+
 if [ "`echo $dataFile | grep $SMARTCACHE_DATA`" != "" ]
 then
   storageEle="se01.cmsaf.mit.edu"
@@ -90,29 +92,34 @@ echo " "; echo "Make directory"; echo " "
 mkdir -p    `dirname $target`
 chmod ug+wx `dirname $target`
 
-echo " "; echo "Starting download now"; echo " "
-echo "$LCGCP -D srmv2 -b $sourceUrl $targetUrl.smartcache.$$"
-
-# make sure to register start time and hostwitht he database
+# make sure to register start time and host with the database
 echo "
 $SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
                                         --startTime --host=$hostname
 "
 $SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
                                         --startTime --host=$hostname
+
 # start download
-echo " copy: $LCGCP $sourceUrl $targetUrl.smartcache.$$"
+echo " copy:  $LCGCP $sourceUrl $targetUrl.smartcache.$$"
 $LCGCP $sourceUrl $targetUrl.smartcache.$$
 
+#echo " copy: $XRDCP $sourceXrd $targetUrl.xrdcp.$$"
 #$XRDCP $sourceXrd $targetUrl.xrdcp.$$
 
 if [ "$?" != "0" ]
 then
   echo " ERROR ($h) - file copy failed for: $target"
+
   echo "              --> removing failed remainder ($dataFile.smartcache.$$)."
   echo " remove: rm $dataFile.smartcache.$$"
   rm $dataFile.smartcache.$$
+
+  #echo "              --> removing failed remainder ($dataFile.xrdcp.$$)."
+  #echo " remove: rm $dataFile.xrdcp.$$"
   #rm $dataFile.xrdcp.$$
+
+  # also the database needs to be updated to account for the failure
   echo "
   $SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
                                           --completionTime --sizeGb=-0.000001
@@ -123,12 +130,16 @@ then
 fi
 
 echo " SUCCESS ($h) - copy worked."
+
 # move file in final location
+
 echo " move: mv $dataFile.smartcache.$$ $dataFile"
 mv $dataFile.smartcache.$$ $dataFile
+
+#echo " move: mv $dataFile.xrdcp.$$ $dataFile"
 #mv $dataFile.xrdcp.$$ $dataFile
 
-# enter the relevant parameters
+# enter the relevant transfer parameters into the database
 sizeBytes=`ls -s --block-size=1 $target | cut -d' ' -f1`
 sizeGb=`echo $sizeBytes | awk '{ print $1/1024/1024/1024}'`
 echo "

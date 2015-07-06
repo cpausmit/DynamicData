@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # --------------------------------------------------------------------------------------------------
 #
-# To enable proper monitoring of the downloads and track the download perfromance depending on the
+# To enable proper monitoring of the downloads and track the download performance depending on the
 # hardware the file cacher will update the database entry to reflect the most accurate information.
 # Every request should be updated twice after creation: once when the download starts and once when
 # the download is completed.

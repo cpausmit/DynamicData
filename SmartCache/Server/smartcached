@@ -17,6 +17,7 @@ do
   if [ -e "$SMARTCACHE_LOGDIR" ]
   then
     #echo " SmartCache log area exists. Let's start!"
+    cd $SMARTCACHE_LOGDIR
     sleep 1
   else
     echo ""

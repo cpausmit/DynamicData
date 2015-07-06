@@ -1,5 +1,6 @@
 #!/bin/bash
 # --------------------------------------------------------------------------------------------------
+#
 # Installation script for DynamicData. There will be lots of things to test and to fix, but this is
 # the starting point. This installation has to be performed as user root.
 #
