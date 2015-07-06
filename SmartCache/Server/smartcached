@@ -26,6 +26,9 @@ do
     exit 1
   fi
 
+  # work out of the log file directory
+  cd $SMARTCACHE_LOGDIR
+
   # generate specific log file
   tag=`date "+%s"`
   logFile=$SMARTCACHE_LOGDIR/smartcache-$tag.log
