@@ -20,7 +20,7 @@ then
   echo " =======================================                        "
   echo ""
   condor_q -g cmsprod -format " --> User: %s" Owner -format "   Args: %s\n" Args | head -$N_ENTRIES
-  nRequests=`condor_q cmsprod -format " --> User: %s" Owner -format "   Args: %s\n" Args | grep '.root' | wc -l`
+  nRequests=`condor_q -g cmsprod -format " --> User: %s" Owner -format "   Args: %s\n" Args | grep '.root' | wc -l`
   echo "  total requests in condor: $nRequests"
 else
   echo ""
