@@ -86,6 +86,7 @@ if action == 'completion' and sizeGb == -1.0:
 # Get access to the database and see whether request exists
 # --------------------------------------------------------------------------------------------------
 # Open database connection
+
 db = MySQLdb.connect(read_default_file="/etc/my.cnf",read_default_group="mysql",db="SmartCache")
 
 # Prepare a cursor object using cursor() method
