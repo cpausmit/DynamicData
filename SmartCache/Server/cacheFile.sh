@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------------------------------------
 #
 # Download exactly one file, either interactively or submitting to condor batch system. Download
-# is based on lcg-cp which we setup via /afs/cern.ch.
+# is based on lcg-cp.
 #
 # TODO:
 #
@@ -13,7 +13,7 @@
 #---------------------------------------------------------------------------------------------------
 #env
 h=`basename $0`; id=`id -u`; hostname=`hostname | tr [A-Z] [a-z]`
-LCGCP='lcg-cp -D srmv2 -b';
+LCGCP='lcg-cp --verbose -D srmv2 -b';
 XRDCP='xrdcp -s';
 
 [ -z "$SMARTCACHE_DATA" ] && ( SMARTCACHE_DATA=/mnt/hadoop/cms/store/user/paus )
