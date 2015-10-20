@@ -55,7 +55,7 @@ fi
  
 cat > submit.cmd <<EOF
 Universe                = vanilla
-Requirements            = Arch == "INTEL" && Disk >= DiskUsage && (Memory * 1024) >= ImageSize && HasFileTransfer
+Requirements            = Arch == "INTEL" && HasFileTransfer
 Notification            = Error
 Executable              = $script
 Arguments               = $file $dataset $book $priority $requestT

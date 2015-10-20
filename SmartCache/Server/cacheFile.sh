@@ -15,9 +15,37 @@
 h=`basename $0`; id=`id -u`; hostname=`hostname | tr [A-Z] [a-z]`
 LCGCP='lcg-cp --verbose -D srmv2 -b';
 XRDCP='xrdcp -s';
+DBXCP='/home/cmsprod/Tools/Dropbox-Uploader/dropbox_uploader.sh download'
 
 [ -z "$SMARTCACHE_DATA" ] && ( SMARTCACHE_DATA=/mnt/hadoop/cms/store/user/paus )
 [ -z "$SMARTCACHE_DIR" ] && ( SMARTCACHE_DIR=/home/cmsprod/DynamicData/SmartCache )
+[ -z "$SMARTCACHE_CP" ] && ( SMARTCACHE_CP=lcg )
+
+
+function copyFile()
+{
+  # copy the file to it temporary location
+
+  echo "SmartCache copy: $SMARTCACHE_CP"
+
+  if [ "$SMARTCACHE_CP" == "dropbox" ]
+  then
+    echo " copy: $DBXCP $sourceDbx.$SMARTCACHE_CP.$$  /tmp/$file.$SMARTCACHE_CP.$$"
+    $DBXCP $sourceDbx /tmp/$file.$SMARTCACHE_CP.$$
+    mv /tmp/$file.$SMARTCACHE_CP.$$ $SMARTCACHE_DATA/$book/$dataset/
+  elif [ "$SMARTCACHE_CP" == "xrootd" ]
+  then
+    echo " copy: $XRDCP $sourceXrd $targetUrl.$SMARTCACHE_CP.$$"
+    $XRDCP $sourceXrd $targetUrl.$SMARTCACHE_CP.$$
+  elif [ "$SMARTCACHE_CP" == "lcg" ]
+  then
+    echo " copy: $LCGCP $sourceUrl $targetUrl.$SMARTCACHE_CP.$$"
+    $LCGCP $sourceUrl $targetUrl.$SMARTCACHE_CP.$$
+  else
+    echo " copy: $LCGCP $sourceUrl $targetUrl.$SMARTCACHE_CP.$$"
+    $LCGCP $sourceUrl $targetUrl.$SMARTCACHE_CP.$$
+  fi
+}
 
 # command line parameters
     file=$1
@@ -87,6 +115,9 @@ fi
 xrdDataFile=`echo $dataFile | sed 's#/mnt/hadoop/cms##'`
 sourceXrd="root://xrootd.unl.edu/$xrdDataFile"
 
+# construct equivalent dropbox location
+sourceDbx="/cms/$xrdDataFile"
+
 # make the directory with right permissions
 echo " "; echo "Make directory"; echo " "
 mkdir -p    `dirname $target`
@@ -101,23 +132,20 @@ $SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$
                                         --startTime --host=$hostname
 
 # start download
-echo " copy:  $LCGCP $sourceUrl $targetUrl.smartcache.$$"
-$LCGCP $sourceUrl $targetUrl.smartcache.$$
 
-#echo " copy: $XRDCP $sourceXrd $targetUrl.xrdcp.$$"
-#$XRDCP $sourceXrd $targetUrl.xrdcp.$$
+copyFile
 
+# dealing with an error
 if [ "$?" != "0" ]
 then
   echo " ERROR ($h) - file copy failed for: $target"
-
-  echo "              --> removing failed remainder ($dataFile.smartcache.$$)."
-  echo " remove: rm $dataFile.smartcache.$$"
-  rm $dataFile.smartcache.$$
-
-  #echo "              --> removing failed remainder ($dataFile.xrdcp.$$)."
-  #echo " remove: rm $dataFile.xrdcp.$$"
-  #rm $dataFile.xrdcp.$$
+  echo "              --> removing failed remainder ($file.$SMARTCACHE_CP.$$)."
+  echo " remove: rm -f /tmp/$file.$SMARTCACHE_CP.$$
+                       $SMARTCACHE_DATA/$book/$dataset/$file.$SMARTCACHE_CP.$$
+                       $SMARTCACHE_DATA/$book/$dataset/$file"
+  rm -f /tmp/$file.$SMARTCACHE_CP.$$ \
+        $SMARTCACHE_DATA/$book/$dataset/$file.$SMARTCACHE_CP.$$ \
+        $SMARTCACHE_DATA/$book/$dataset/$file
 
   # also the database needs to be updated to account for the failure
   echo "
@@ -131,15 +159,13 @@ fi
 
 echo " SUCCESS ($h) - copy worked."
 
-# move file in final location
+# move file to final location
 
-echo " move: mv $dataFile.smartcache.$$ $dataFile"
-mv $dataFile.smartcache.$$ $dataFile
-
-#echo " move: mv $dataFile.xrdcp.$$ $dataFile"
-#mv $dataFile.xrdcp.$$ $dataFile
+echo " move: mv $dataFile.$SMARTCACHE_CP.$$ $dataFile"
+mv $dataFile.$SMARTCACHE_CP.$$ $dataFile
 
 # enter the relevant transfer parameters into the database
+
 sizeBytes=`ls -s --block-size=1 $target | cut -d' ' -f1`
 sizeGb=`echo $sizeBytes | awk '{ print $1/1024/1024/1024}'`
 echo "

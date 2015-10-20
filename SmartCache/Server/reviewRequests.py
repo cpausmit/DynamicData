@@ -57,7 +57,8 @@ files = []
 dsets = []
 books = []
 
-cmd="condor_q -global $USER -format \"%s \" Cmd -format \"%s \n\" Args | grep -v queues"
+cmd = "condor_q -global $USER -format \"%s \" Cmd -format \"%s \n\" Args" \
+      + " | grep cacheFile.sh | grep -v queues"
 iDownloads=0
 for line in os.popen(cmd).readlines():   # run command
     iDownloads+=1

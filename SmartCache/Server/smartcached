@@ -4,10 +4,8 @@
 #
 # v1.0                                                                         C.Paus (May 12, 2013)
 # --------------------------------------------------------------------------------------------------
-export SMARTCACHE_DEBUG="1"
-export SMARTCACHE_DATA="/mnt/hadoop/cms/store/user/paus"
-export SMARTCACHE_DIR="/usr/local/DynamicData/SmartCache"
-export SMARTCACHE_LOGDIR="/var/log/DynamicData/SmartCache"
+# initialize environment variables
+source /usr/local/DynamicData/SmartCache/setup.sh
 
 # number of cycles per logfile
 indices="0 1 2 3 4 5 6 7 8 9 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30"

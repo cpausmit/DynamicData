@@ -11,7 +11,7 @@ then
   N_ENTRIES=10
 fi
 
-condor_q -g cmsprod 2> /dev/null | tail -$N_ENTRIES
+condor_q -g cmsprod | grep cacheFile.sh 2> /dev/null | tail -$N_ENTRIES
 
 if [ "$?" == "0" ]
 then
@@ -19,8 +19,9 @@ then
   echo " Smart cache download requests in condor (first $N_ENTRIES max.)"
   echo " =======================================                        "
   echo ""
-  condor_q -g cmsprod -format " --> User: %s" Owner -format "   Args: %s\n" Args | head -$N_ENTRIES
-  nRequests=`condor_q -g cmsprod -format " --> User: %s" Owner -format "   Args: %s\n" Args | grep '.root' | wc -l`
+  condor_q -g cmsprod -format "Cmd: %s" Cmd -format " --> User: %s" Owner -format "   Args: %s\n" Args \
+    | grep cacheFile.sh | head -$N_ENTRIES
+  nRequests=`condor_q -g cmsprod -format "Cmd: %s" Cmd -format " --> User: %s" Owner -format "   Args: %s\n" Args | grep cacheFile.sh | grep '.root' | wc -l`
   echo "  total requests in condor: $nRequests"
 else
   echo ""
