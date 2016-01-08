@@ -57,9 +57,10 @@ files = []
 dsets = []
 books = []
 
-cmd = "condor_q -global $USER -format \"%s \" Cmd -format \"%s \n\" Args" \
-      + " | grep cacheFile.sh | grep -v queues"
-iDownloads=0
+cmd = "condor_q -global $USER -format \"%s \" Cmd -format \"%s \n\" Args " \
+    + " | grep cacheFile.sh | grep -v queues"
+
+iDownloads = 0
 for line in os.popen(cmd).readlines():   # run command
     iDownloads+=1
     line = line[:-1]                     # strip '\n'
@@ -154,7 +155,7 @@ try:
             print " Error (%s): unable to insert record into CompletedDownload table."%(sql)
 
         # remove all matching download requests from the Downloads table
-        sql="delete from Downloads where Status=2 and File='%s' and Dataset='%s'and Book='%s';"%\
+        sql="delete from Downloads where Status=2 and File='%s' and Dataset='%s' and Book='%s';"%\
              (file,dset,book)
         try:
             # Execute the SQL command
