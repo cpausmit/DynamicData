@@ -1,0 +1,47 @@
+The design of Cinderella follows the requirements of an automatic cache release process needed for the 
+CMS computing. This cache release process is supposed to optimize the usage of all 
+available disk storage and relieve the data managers of a large fraction of their work by:
+
+\begin{enumerate}
+	\item keeping all storage filled to a high and safe level;
+	\item always allow new data to be received at any site;
+	\item remove the least valuable data from the storage when the storage fills over a given level.
+\end{enumerate}
+
+In order to perform a cache release, the system is periodically reviewed to ensure there is free space 
+for transfers at the site. The condition for the cache release is given by:
+
+\begin{itemize}
+	\item usedSpace / availableSpace $>$ 92\% (number can be adjusted);
+\end{itemize}
+
+When the cache release algorithm is triggered, enough datasets to restore the target free space are identified
+for deletion in order to fulfill the following condition:
+
+\begin{itemize}
+	\item usedSpace / availableSpace $<$ 87\% (number can be adjusted);
+\end{itemize}
+
+To select datasets for deletion we algorithmically rank all datasets. We select datasets with the lowest priority
+by adding the space they occupy until we have enough space to meet the above condition. The selected datasets are 
+then removed from storage. The ranking algorithm evaluates the usefulness of the data. For our site, the ranking 
+algorithm uses only the time of latest access, such that the lowest priority datasets were accessed longest ago. 
+
+Cinderella implements the algorithm described above. The core parts of the software are
+a \textsc{MySQL} database, which stores the list of datasets and relevant information needed to generate the ranking
+and perform the cache release, and a daemon that periodically checks if the release trigger condition is met.
+In case of a triggered release, the Cinderella daemon issues the deletion command and updates the dataset database.
+
+The Cinderella service also takes periodic snapshots of the dataset database, and uploads them online at 
+\href{http://t3serv001.mit.edu/~cmsprod/dynamicdata/cinderella.html}{\textcolor{Mahogany}{this webpage}}.
+The snapshots show a ranked list of datasets in our database according to the algorithm used for the
+cache release. For each dataset, the number of accesses, number of downloads, caching status (which 
+determines if that dataset is present on the Tier-3 cache), last access time and size are listed.
+In the current color scheme, blue denotes datasets that were at some point cached but have been deleted and
+are not currently stored in cache, red shows the list of datasets that will be deleted in case the cache release
+condition is met, and black shows the remaining datasets.
+
+During 6 months of operations, Cinderella has been responsible for deletions that amount to a total of 0.1 PB
+of disk space, equivalent to 1/3 of the entire Tier-3 storage capabilities. Equivalently, the system has 
+triggered a cache release about ten times.
+

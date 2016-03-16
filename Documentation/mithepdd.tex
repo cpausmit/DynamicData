@@ -1,0 +1,43 @@
+As already specified, CMS maintains a huge amount of data, O(50PB), organized 
+in datasets, which share common properties and users tend to analyze as a whole. 
+Datasets are further subdivided into data blocks consisting of one or more files. These 
+subdivisions facilitate the handling of the datasets.
+
+A convenient set of tools exists to move data around but there is no intelligent tool to produce and
+distribute copies of popular data or automatically remove less popular data. At present the various 
+physics groups each have a data manager who is responsible for disk management. Usually this involves 
+the management of about three Tier-2 computing sites and about a thousand 
+datasets (mostly Monte Carlo simulation). Placement of new data is relatively straight forward but the 
+deletion of older sets can be quite complicated and requires significant amount of time.
+
+At MIT, we have tried to tackle this problem by considering a small subset of the CMS computing system, 
+i.e. the two sites sub-system \{T2\_US\_MIT,T3\_US\_MIT\}. In this sub-system we have the following:
+
+\begin{itemize}
+	\item all datasets relevant for MIT analyses are stored on the Tier-2;
+	\item all data analysis jobs are run on Tier-3 machines;
+	\item the available disk space of the Tier-3 is not enough to store all datasets necessary for 
+	the completion of all the analyses.
+	\item users typically re-run a given analysis workflow multiple times on the same group of datasets in 
+	a relatively short timescale.
+\end{itemize}
+We have designed and implemented an automated service, the \textbf{MIT HEP Dynamic Data (MITHDD)}, that 
+caches the datasets on Tier-3, using the Tier-2 as a source pool. 
+
+MITHDD is divided into two subservices: \textbf{SmartCache}, which is responsible for transferring 
+datasets from Tier-2 to Tier-3, and \textbf{Cinderella}, which is responsible for deletions on Tier-3.
+
+The source code of MITHDD follows the same structure and is currently available on \textsc{GitHub} at 
+\href{https://github.com/cpausmit/DynamicData}{\textcolor{Mahogany}{this link}}. The software is licensed
+under \href{http://opensource.org/licenses/MIT}{\textcolor{Mahogany}{these terms}}.
+
+\subsection{SmartCache}\label{subsec:smartcache}
+\input{smartcache.tex}
+
+\subsection{Cinderella}\label{subsec:cinderella}
+\input{cinderella.tex}
+
+
+
+
+
