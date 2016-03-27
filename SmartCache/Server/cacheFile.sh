@@ -13,6 +13,7 @@
 #---------------------------------------------------------------------------------------------------
 #env
 h=`basename $0`; id=`id -u`; hostname=`hostname | tr [A-Z] [a-z]`
+LCGLS='lcg-ls -D srmv2 -b';
 LCGCP='lcg-cp --verbose -D srmv2 -b';
 XRDCP='xrdcp -s';
 DBXCP='/home/cmsprod/Tools/Dropbox-Uploader/dropbox_uploader.sh download'
@@ -21,15 +22,29 @@ DBXCP='/home/cmsprod/Tools/Dropbox-Uploader/dropbox_uploader.sh download'
 [ -z "$SMARTCACHE_DIR" ] && ( SMARTCACHE_DIR=/home/cmsprod/DynamicData/SmartCache )
 [ -z "$SMARTCACHE_CP" ] && ( SMARTCACHE_CP=lcg )
 
+function exeCmd()
+{
+  # execute the given command and show what we do
+  echo ""
+  echo " Execute: $*"
+  $*
+  rc=$?
+  echo " --------"
+  return $rc
+}
 
 function copyFile()
 {
   # copy the file to it temporary location
 
+  $LCGLS $src; notOnT2="$?"; echo " Checked if file is not on Tier-2: $notOnT2"
+
   echo "SmartCache copy: $SMARTCACHE_CP"
 
-  if [ "$SMARTCACHE_CP" == "dropbox" ]
+  if [ "$SMARTCACHE_CP" == "dropbox" ] || [ "$notOnT2" == "1" ]
   then
+    SMARTCACHE_CP="dropbox"
+    echo " -X-X-X-X-  U S I N G   D R O P B O X  -X-X-X-X- "
     echo " copy: $DBXCP $sourceDbx.$SMARTCACHE_CP.$$  /tmp/$file.$SMARTCACHE_CP.$$"
     $DBXCP $sourceDbx /tmp/$file.$SMARTCACHE_CP.$$
     mv /tmp/$file.$SMARTCACHE_CP.$$ $SMARTCACHE_DATA/$book/$dataset/
@@ -124,15 +139,10 @@ mkdir -p    `dirname $target`
 chmod ug+wx `dirname $target`
 
 # make sure to register start time and host with the database
-echo "
-$SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
-                                        --startTime --host=$hostname
-"
-$SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
-                                        --startTime --host=$hostname
+exeCmd $SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
+                                               --startTime --host=$hostname
 
 # start download
-
 copyFile
 
 # dealing with an error
@@ -160,18 +170,11 @@ fi
 echo " SUCCESS ($h) - copy worked."
 
 # move file to final location
-
-echo " move: mv $dataFile.$SMARTCACHE_CP.$$ $dataFile"
-mv $dataFile.$SMARTCACHE_CP.$$ $dataFile
+exeCmd mv $dataFile.$SMARTCACHE_CP.$$ $dataFile
 
 # enter the relevant transfer parameters into the database
-
 sizeBytes=`ls -s --block-size=1 $target | cut -d' ' -f1`
 sizeGb=`echo $sizeBytes | awk '{ print $1/1024/1024/1024}'`
-echo "
-$SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
-                                        --completionTime --sizeGb=$sizeGb
-"
-$SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
-                                        --completionTime --sizeGb=$sizeGb
+exeCmd $SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
+                                               --completionTime --sizeGb=$sizeGb
 exit 0
