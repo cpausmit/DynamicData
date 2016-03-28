@@ -49,6 +49,7 @@ function copyFile()
     echo " -X-X-X-X-  U S I N G   D R O P B O X  -X-X-X-X- "
     echo " copy: $DBXCP $sourceDbx.$SMARTCACHE_CP.$$  /tmp/$file.$SMARTCACHE_CP.$$"
     $DBXCP $sourceDbx /tmp/$file.$SMARTCACHE_CP.$$
+    chmod a+r /tmp/$file.$SMARTCACHE_CP.$$
     mv /tmp/$file.$SMARTCACHE_CP.$$ $SMARTCACHE_DATA/$book/$dataset/
   elif [ "$SMARTCACHE_CP" == "xrootd" ]
   then
