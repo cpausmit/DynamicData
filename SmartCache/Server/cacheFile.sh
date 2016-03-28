@@ -37,7 +37,9 @@ function copyFile()
 {
   # copy the file to it temporary location
 
-  $LCGLS $src; notOnT2="$?"; echo " Checked if file is not on Tier-2: $notOnT2"
+  echo "$LCGLS $sourceUrl";
+  $LCGLS $sourceUrl; notOnT2="$?";
+  echo " Checked if file is not on Tier-2: $notOnT2"
 
   echo "SmartCache copy: $SMARTCACHE_CP"
 
