@@ -12,7 +12,7 @@
 #
 #                                                   L.Di Matteo, Ch.Paus: Version 0.0 (Feb 17, 2014)
 # --------------------------------------------------------------------------------------------------
-# Command line argument (server names: smartcache- t3btch039.mit.edu, cinderella- t3btch112.mit.edu)
+# Command line argument (server names: smartcache- t3btch039.mit.edu, cinderella- t3btch039.mit.edu)
 if [ "$1" == "" ] || [ "$2" == "" ]
 then
   echo ""
