@@ -72,7 +72,7 @@ for line in os.popen(cmd).readlines():   # run command
 
 
 # open database connection
-db = MySQLdb.connect(read_default_file="/etc/my.cnf",read_default_group="mysql",db="SmartCache")
+db = MySQLdb.connect(read_default_file="/etc/my.cnf",read_default_group="mysql",db="DynamicData")
 
 # prepare a cursor object using cursor() method
 cursor = db.cursor()

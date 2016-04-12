@@ -10,7 +10,7 @@ class DatabaseHandle:
     def __init__(self):
         self.handle = MySQLdb.connect(read_default_file  = "/etc/my.cnf", \
                                       read_default_group = "mysql", \
-                                      db                 = "Cinderella")
+                                      db                 = "DynamicData")
     
     def getCursor(self):
         return self.handle.cursor()
