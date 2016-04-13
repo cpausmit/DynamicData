@@ -39,9 +39,6 @@ script="$SMARTCACHE_DIR/Server/cacheFile.sh"
 workDir="$SMARTCACHE_LOGDIR/condor"
 mkdir -p $SMARTCACHE_LOGDIR/condor/$book/$dataset
 
-# Make sure there are kerberos and globus tickets available
-x509File=/tmp/x509up_u`id -u`
-
 # Preparing and submitting the condor job
 # ---------------------------------------
 
@@ -56,6 +53,7 @@ fi
 cat > submit.cmd <<EOF
 Universe                = vanilla
 Requirements            = Arch == "INTEL" && HasFileTransfer
+#Requirements            = Arch == "X86_64" && HasFileTransfer
 Notification            = Error
 Executable              = $script
 Arguments               = $file $dataset $book $priority $requestT
@@ -66,7 +64,7 @@ Input                   = /dev/null
 Output                  = $book/$dataset/${file}.out
 Error                   = $book/$dataset/${file}.err
 Log                     = $book/$dataset/${file}.log
-transfer_input_files    = $x509File
+use_x509userproxy       = True
 should_transfer_files   = YES
 when_to_transfer_output = ON_EXIT
 +AccountingGroup        = "group_cmsuser.$USER"
