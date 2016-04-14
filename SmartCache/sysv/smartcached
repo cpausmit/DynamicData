@@ -3,8 +3,8 @@
 # smartcached     Startup script for the smartcache Server
 #
 # chkconfig: - 70 15
-# description: SmartCache is a server to receive request for file downloads and \
-#              manage those requests using the local batch infrastructure.
+# description: SmartCache is a server to receive request for file downloads and manage those \
+#              requests using the local batch infrastructure.
 #
 # processname: smartcached
 # config:      /etc/smartcached.conf

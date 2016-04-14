@@ -13,8 +13,8 @@
 #---------------------------------------------------------------------------------------------------
 h=`basename $0`; id=`id -u`; hostname=`hostname | tr [A-Z] [a-z]`
 
-# setup SmartCache
-source /usr/local/DynamicData/SmartCache/setup.sh
+# setup SmartCache if not yet set
+[ -z "$SMARTCACHE_DIR" ] && source /usr/local/DynamicData/SmartCache/setup.sh
 
 # setup Tier-2 tools
 source /home/cmsprod/T2Tools/setup.sh
@@ -109,7 +109,7 @@ echo ""
 
 # first test whether file exists
 testFile=`echo "$dataFile" | sed 's@/mnt/hadoop@@g' `
-exeCmd hdfs dfs -Dmv32m -fs hdfs://t3serv002.mit.edu:9000 -test -e $testFile
+exeCmd hdfs dfs -fs hdfs://t3serv002.mit.edu:9000 -test -e $testFile
 if [ "$?" == 0 ]
 then
   echo " SUCCESS ($h) - file already in smartCache."
@@ -150,7 +150,7 @@ then
   exeCmd rm -f /tmp/$file.$SMARTCACHE_CP.$$
 
   files=`echo "$SMARTCACHE_DATA/$book/$dataset/$file.$SMARTCACHE_CP.$$ $SMARTCACHE_DATA/$book/$dataset/$file" | sed 's@/mnt/hadoop@@g'`
-  exeCmd hdfs dfs -Dmv32m -fs hdfs://t3serv002.mit.edu:9000 -rm -f $files
+  exeCmd hdfs dfs -fs hdfs://t3serv002.mit.edu:9000 -rm -f $files
 
   # also the database needs to be updated to account for the failure
   exeCmd $SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
@@ -161,9 +161,9 @@ fi
 echo " SUCCESS ($h) - copy worked."
 
 # move file to final location
-exeCmd mv $dataFile.$SMARTCACHE_CP.$$ $dataFile
-#files=`echo "$dataFile.$SMARTCACHE_CP.$$ $dataFile" | sed 's@/mnt/hadoop@@g' `
-#exeCmd hdfs dfs -Dmv32m -fs hdfs://t3serv002.mit.edu:9000 -mv $files
+#exeCmd mv $dataFile.$SMARTCACHE_CP.$$ $dataFile
+files=`echo "$dataFile.$SMARTCACHE_CP.$$ $dataFile" | sed 's@/mnt/hadoop@@g' `
+exeCmd hdfs dfs -fs hdfs://t3serv002.mit.edu:9000 -mv $files
 
 # enter the relevant transfer parameters into the database
 sizeBytes=`ls -s --block-size=1 $target | cut -d' ' -f1`
