@@ -28,7 +28,6 @@ LCGLS='lcg-ls -D srmv2 -b';
 LCGCP='lcg-cp --verbose -D srmv2 -b';
 XRDCP='xrdcp -s';
 
-
 function exeCmd()
 {
   # execute the given command and show what we do
@@ -45,7 +44,7 @@ function copyFile()
   # copy the file to it temporary location
 
   # first see whther file is on Tier-2
-  exeCmd $T2LS /mnt/hadoop${sourceDbx}; notOnT2="$?";
+  exeCmd $T2LS ${sourceDbx}; notOnT2="$?";
   echo " Checked if file is not on Tier-2: $notOnT2"
 
   # show our copy option
