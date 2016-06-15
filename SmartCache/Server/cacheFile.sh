@@ -17,7 +17,6 @@ h=`basename $0`; id=`id -u`; hostname=`hostname | tr [A-Z] [a-z]`
 [ -z "$SMARTCACHE_DIR" ] && source /usr/local/DynamicData/SmartCache/setup.sh
 
 # setup Tier-2 tools
-source /home/cmsprod/T2Tools/setup.sh
 T2LS='list'
 
 # setup Dropbox tools
@@ -52,7 +51,7 @@ function copyFile()
   echo ""
 
   # make the copy command and do it
-  if [ "$SMARTCACHE_CP" == "dropbox" ] || [ "$notOnT2" == "1" ]
+  if [ "$SMARTCACHE_CP" == "dropbox" ] || [ "$notOnT2" != "0" ]
   then
     echo " -X-X-X-X-  U S I N G   D R O P B O X  -X-X-X-X- "
     SMARTCACHE_CP="dropbox"
