@@ -122,16 +122,19 @@ sourceUrl="srm://${storageEle}:8443${storagePath}$dataFile"
 
 # construct equivalent xrootd location
 xrdDataFile=`echo $dataFile | sed 's#/mnt/hadoop/cms##'`
-sourceXrd="root://xrootd.unl.edu/$xrdDataFile"
+sourceXrd="root://xrootd.cmsaf.mit.edu/$xrdDataFile"
 
 # construct equivalent dropbox location
 sourceDbx="/cms${xrdDataFile}"
 
 # make the directory with right permissions
 dir=`dirname $target`
-echo " "; echo "Make directory: $dir"; echo " "
-mkdir -p    $dir
-chmod ug+wx $dir
+if ! [ -d $dir ]
+then
+  echo " "; echo "Make directory: $dir"; echo " "
+  mkdir -p    $dir
+  chmod ug+wx $dir
+fi
 
 # make sure to register start time and host with the database
 exeCmd $SMARTCACHE_DIR/Server/updateRequest.py --book=$book --dataset=$dataset --file=$file \
