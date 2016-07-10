@@ -28,7 +28,8 @@
 # TODO -- [ we need a step 6 in which old logfiles will be cleared ]
 #
 # --------------------------------------------------------------------------------------------------
-import os, MySQLdb, time
+import os, sys, MySQLdb, time
+import traceback
 import datetime
 from   datetime import date, timedelta
 
@@ -57,11 +58,15 @@ files = []
 dsets = []
 books = []
 
-cmd = "condor_q -global $USER -format \"%s \" Cmd -format \"%s \n\" Args " \
-    + " | grep cacheFile.sh | grep -v queues"
+cmd = "condor_q -global $USER -format \"%s \" Cmd -format \"%s \n\" Args"
 
 iDownloads = 0
 for line in os.popen(cmd).readlines():   # run command
+    if 'cacheFile.sh' not in line:
+        continue
+    if 'queues' in line:
+        continue
+
     iDownloads+=1
     line = line[:-1]                     # strip '\n'
     f = line.split(' ')
@@ -97,7 +102,7 @@ try:
         dset = row[1]
         book = row[2]
         prio = row[3]
-        time = row[4]
+        etim = row[4]
         stat = row[5]
         stim = row[6]
         ctim = row[7]
@@ -106,8 +111,8 @@ try:
         # print fetched result
         print " --> file=%s dset=%s book=%s"% \
               (file,dset,book) + \
-              " prio=%d time=%d stat=%d stim=%d ctim=%d size=%f host=%s"% \
-              (prio,time,stat,stim,ctim,size,host)
+              " prio=%d etim=%d stat=%d stim=%d ctim=%d size=%f host=%s"% \
+              (prio,etim,stat,stim,ctim,size,host)
 
         # check whether the transfer worked
         resubmit = 0
@@ -144,7 +149,7 @@ try:
 
         # insert into our CompletedDownload table (failed or successfully completed)
         sql="insert into CompletedDownloads values ('%s','%s','%s',%d,%d,%d,%d,%d,%f,'%s');"%\
-             (file,dset,book,prio,time,stat,stim,ctim,size,host)
+             (file,dset,book,prio,etim,stat,stim,ctim,size,host)
         try:
             # Execute the SQL command
             print '        ' + sql
@@ -152,6 +157,7 @@ try:
             # Commit your changes in the database
             db.commit()
         except:
+            traceback.print_exc(3, sys.stdout)
             print " Error (%s): unable to insert record into CompletedDownload table."%(sql)
 
         # remove all matching download requests from the Downloads table
@@ -164,35 +170,37 @@ try:
             # Commit your changes in the database
             db.commit()
         except:
+            traceback.print_exc(3, sys.stdout)
             print " Error (%s): unable to update status."%(sql)
             # Rollback in case there is any error
             db.rollback()
 
         # take care of failed requests (this is dangerous is everything fails, needs safety)
         if resubmit == 1:
-            # new submission time
-            time = int(time.time())
             # Submit the download request
-            cmd = SMARTCACHE_DIR + '/Client/addDownloadRequest.sh --file=' + \
+            cmd = SMARTCACHE_DIR + '/Client/addDownloadRequest.py --file=' + \
                   file + ' --dataset=' + dset + ' --book=' + book
             print ' WARNING - DANGEROUS RECOVERY LOOP IN ACTION -- Execute: ' + cmd
             os.system(cmd)
-    
-            # Update status information in the table
-            sql="update Downloads set Status=1 where File='%s' and Dataset='%s'and Book='%s';"%\
-                 (file,dset,book)
-            try:
-                # Execute the SQL command
-                cursor.execute(sql)
-                # Commit your changes in the database
-                db.commit()
-            except:
-                print " Error (%s): unable to update status."%(sql)
-                # Rollback in case there is any error
-                db.rollback()
+
+# STATUS should only be updated after the Server issues submitDownload.sh (Y.I. 2016/07/10)
+#            # Update status information in the table
+#            sql="update Downloads set Status=1 where File='%s' and Dataset='%s'and Book='%s';"%\
+#                 (file,dset,book)
+#            try:
+#                # Execute the SQL command
+#                cursor.execute(sql)
+#                # Commit your changes in the database
+#                db.commit()
+#            except:
+#                traceback.print_exc(3, sys.stdout)
+#                print " Error (%s): unable to update status."%(sql)
+#                # Rollback in case there is any error
+#                db.rollback()
             
 
 except:
+    traceback.print_exc(3, sys.stdout)
     print " Error (%s): unable to fetch data."%(sql)
 
 # --------------------------------------------------------------------------------------------------
@@ -212,11 +220,11 @@ try:
         dset = row[1]
         book = row[2]
         prio = row[3]
-        time = row[4]
+        etim = row[4]
         stat = row[5]
         # Now print fetched result
-        print " --> file=%s, dset=%s, book=%s, prio=%d, time=%d, stat=%d"% \
-              (file,dset,book,prio,time,stat)
+        print " --> file=%s, dset=%s, book=%s, prio=%d, etim=%d, stat=%d"% \
+              (file,dset,book,prio,etim,stat)
 
         # find all matching files and make sure dataset and book are the same
         i = -1
@@ -242,11 +250,13 @@ try:
                 # Commit your changes in the database
                 db.commit()
             except:
+                traceback.print_exc(3, sys.stdout)
                 print " Error (%s): unable to update status."%(sql)
                 # Rollback in case there is any error
                 db.rollback()
 
 except:
+    traceback.print_exc(3, sys.stdout)
     print " Error (%s): unable to fetch data."%(sql)
 
 # --------------------------------------------------------------------------------------------------
@@ -268,15 +278,15 @@ try:
         dset = row[1]
         book = row[2]
         prio = row[3]
-        time = row[4]
+        etim = row[4]
         stat = row[5]
         # Now print fetched result
-        print " --> file=%s, dset=%s, book=%s, prio=%d, time=%d, stat=%d"% \
-              (file,dset,book,prio,time,stat)
+        print " --> file=%s, dset=%s, book=%s, prio=%d, etim=%d, stat=%d"% \
+              (file,dset,book,prio,etim,stat)
 
         # Submit the download request
         cmd = SMARTCACHE_DIR + '/Server/submitDownload.sh ' + \
-              file + ' ' + dset + ' ' + book + ' ' + str(prio) + ' ' + str(time)
+              file + ' ' + dset + ' ' + book + ' ' + str(prio) + ' ' + str(etim)
         print ' Execute: ' + cmd
         os.system(cmd)
 
@@ -289,11 +299,13 @@ try:
             # Commit your changes in the database
             db.commit()
         except:
+            traceback.print_exc(3, sys.stdout)
             print " Error (%s): unable to update status."%(sql)
             # Rollback in case there is any error
             db.rollback()
 
 except:
+    traceback.print_exc(3, sys.stdout)
     print " Error (%s): unable to fetch data."%(sql)
 
 
