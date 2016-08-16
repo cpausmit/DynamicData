@@ -147,6 +147,24 @@ try:
             else:
                 print ' File does not exist, download failed: ' + fullFile
 
+        sql = 'select SizeGb from CompletedDownloads where File = \'%s\' and Dataset = \'%s\' and Book = \'%s\' order by EntryDateUT desc;' % \
+            (file, dset, book)
+
+        cursor.execute(sql)
+
+        results = cursor.fetchall()
+        nfail = 0
+        for row in results:
+            if row[0] < 0.001:
+                nfail += 1
+
+                # failed 5 times in a row - maybe resubmitting doesn't work for this file
+                if nfail == 5:
+                    resubmit = 0
+                    break
+            else:
+                break
+
         # insert into our CompletedDownload table (failed or successfully completed)
         sql="insert into CompletedDownloads values ('%s','%s','%s',%d,%d,%d,%d,%d,%f,'%s');"%\
              (file,dset,book,prio,etim,stat,stim,ctim,size,host)
