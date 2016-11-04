@@ -60,28 +60,36 @@ def getRemovableDatasets(releaseAmount):
 def getStorageStatus():
     # prepare the Command to get the current storage status
     cmd = 'hadoop fs -df -h'
-    # store the storage status in an array
-    # the relevant fields are : [6] -> storageCapacity
-    #                           [8] -> freeSpace
+    # example output:
+    # Filesystem                        Size     Used  Available  Use%
+    # hdfs://t3serv002.mit.edu:9000  257.6 T  251.0 T      6.5 T   97%
     storageStatusSummary = commands.getoutput(cmd).split()
     strStorageCapacity   = storageStatusSummary[6]
-    strStorageFreeSpace  = storageStatusSummary[8]
-    # fix the format of the relevant string, i.e. strip the ending 'g' character
-    strStorageCapacity  = strStorageCapacity.replace("g", "")
-    strStorageFreeSpace = strStorageFreeSpace.replace("g", "")
+    unitStorageCapacity  = storageStatusSummary[7]
+    strStorageFreeSpace  = storageStatusSummary[10]
+    unitStorageFreeSpace  = storageStatusSummary[11]
     # check the sanity of the strings and convert into float
     try:
-        storageCapacity = float(strStorageCapacity)*1.0e9
-        print " INFO - total storage space is " + strStorageCapacity + ' GB'
+        storageCapacity = float(strStorageCapacity)
+        print " INFO - total storage space is " + strStorageCapacity + ' ' + unitStorageCapacity
+        if unitStorageCapacity == 'T':
+            storageCapacity *= 1.e+12
+        elif unitStorageCapacity == 'G':
+            storageCapacity *= 1.e+9
     except ValueError:
         print ' ERROR -- cannot read storage capacity, aborting.'
         os._exit(1)
     try:
-        storageFreeSpace = float(strStorageFreeSpace)*1.0e9
-        print " INFO - total available space is " + strStorageFreeSpace + ' GB'
+        storageFreeSpace = float(strStorageFreeSpace)
+        print " INFO - total available space is " + strStorageFreeSpace + ' ' + unitStorageFreeSpace
+        if unitStorageFreeSpace == 'T':
+            storageFreeSpace *= 1.e+12
+        elif unitStorageFreeSpace == 'G':
+            storageFreeSpace *= 1.e+9
     except ValueError:
         print ' ERROR -- cannot read storage free space, aborting.'
         os._exit(1)
+
     return storageCapacity, storageFreeSpace
 
 def releaseCache(executeRelease,datasetsToRemove):
