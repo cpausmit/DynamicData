@@ -29,6 +29,13 @@ STOP_TIMEOUT=${STOP_TIMEOUT-10}
 
 # Start smartcache daemon (smartcached)
 start() {
+    if [ -e ${lockfile} ]
+    then
+      pid=$(cat ${pidfile})
+      echo "smartcached is already running (pid $pid)."
+      return 127
+    fi
+
     echo -n $"Starting $prog:"
     daemon --user=cmsprod --pidfile=${pidfile} $smartcached \&
     RETVAL=$?
@@ -36,7 +43,7 @@ start() {
     [ $RETVAL = 0 ] && touch ${lockfile}
     
     # this seems like a hack, but I do not know how to do it differently
-    pid=`ps auxw | grep "/bin/bash $smartcached" |tr -s ' '|cut -d' ' -f2`
+    pid=`pgrep -f $smartcached`
     echo $pid > $pidfile
     
     return $RETVAL
