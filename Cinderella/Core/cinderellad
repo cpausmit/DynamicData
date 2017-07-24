@@ -1,4 +1,4 @@
-#!/bin/bash
+1;2c#!/bin/bash
 # --------------------------------------------------------------------------------------------------
 # Process to keep cinderella alive and well.
 #
@@ -57,11 +57,13 @@ do
   touch $logFile
 
   # ten loops over the process with one logfile (keep it small)
+  mv $CINDERELLA_LOGDIR/cinderella.status{,.$tag}
+
   for index in `echo 0 1 2 3 4 5 6 7 8 9`
   do
     echo " cinderella loop $index  -- $tag" >> $logFile
     $CINDERELLA_DIR/Core/reviewCache.py     >> $logFile
-    echo " waiting for $CINDERELLA_WAIT seconds for next full cycle."
+    echo " waiting for $CINDERELLA_WAIT seconds for next full cycle." >> $logFile
     sleep $CINDERELLA_WAIT
   done
 

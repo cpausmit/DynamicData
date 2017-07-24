@@ -12,7 +12,7 @@ import database
 # - S U B R O U T I N E S -----------------------------------------------------------------------------
 
 def findLastAccessedFile(dir):
-    cmd = 'ls -Aru ' + dir + ' | tail -n 1'
+    cmd = 'ls -Aru ' + dir + ' | grep "\.root$" | tail -n 1'
     theLatestFile = commands.getoutput(cmd)
     return theLatestFile
 
