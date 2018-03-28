@@ -52,7 +52,7 @@ fi
  
 cat > submit.cmd <<EOF
 Universe                = vanilla
-Requirements            = Arch == "INTEL" && HasFileTransfer
+Requirements            = (Arch == "INTEL" || (Arch == "X86_64" && Memory < 1000)) && HasFileTransfer
 #Requirements            = Arch == "X86_64" && HasFileTransfer
 Notification            = Error
 Executable              = $script

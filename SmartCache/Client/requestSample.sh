@@ -27,7 +27,7 @@ echo " Adding download requests to complete download of dataset: $DATASET in boo
 echo ""
 
 # get all files from the catalog
-files=`cat $CATALOG/$BOOK/$DATASET/Files | grep -v ^# | cut -d' ' -f2`
+files=`cat $CATALOG/$BOOK/$DATASET/Files | grep -v ^# | tr -s ' ' | cut -d' ' -f2`
 nFiles=`wc -l $CATALOG/$BOOK/$DATASET/Files | cut -d' ' -f1`
 echo " --> found $nFiles in catalog. Checking availability and add to requests."
 
@@ -44,9 +44,18 @@ do
   if [ ".$exists" == "." ]
   then
     missingFiles="$missingFiles $file"
+    echo " File $file missing."
+  else
+    echo " File $file already exists."
   fi
 done
 nFiles=`echo $missingFiles | wc -w`
+if [ "$nFiles" == "0" ]
+then
+  echo " --> found all files in local cache ($nFiles missing). EXIT."
+  exit 0
+fi
+
 echo " --> found $nFiles missing in local cache, add them to the request table."
 echo ""
 read -p " Do you wish to continue? [N/y] " yn
@@ -59,8 +68,8 @@ fi
 # request the missing files for download
 for file in $missingFiles
 do
-  cmd="$SMARTCACHE_DIR/Client/addDownloadRequest.py --file=$file  --dataset=$DATASET --book=$BOOK"
-  fullFile="$DATA/$BOOK/$DATASET/$file"
+  cmd="$SMARTCACHE_DIR/Client/addDownloadRequest.py --file=$file --dataset=$DATASET --book=$BOOK"
+  echo $cmd
   $cmd
 done
 

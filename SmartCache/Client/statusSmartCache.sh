@@ -19,11 +19,10 @@ then
   echo " Smart cache download requests in condor (first $N_ENTRIES max.)"
   echo " =======================================                        "
   echo ""
-  condor_q -g cmsprod -format "Cmd: %s" Cmd -format " --> User: %s" Owner \
-                      -format " Args: %s\n" Args | grep cacheFile.sh | head -$N_ENTRIES
-  nRequests=`condor_q -g cmsprod -format "Cmd: %s" Cmd -format " --> User: %s" Owner \
-                                 -format " Args: %s\n" Args | grep cacheFile.sh \
-                                                            | grep '.root' | wc -l`
+  condor_q cmsprod -limit $N_ENTRIES -format "Cmd: %s" Cmd -format " --> User: %s" Owner \
+                      -format " Args: %s\n" Args | grep cacheFile.sh
+  nRequests=`condor_q cmsprod -af Cmd Args | grep cacheFile.sh \
+                                                       | grep '.root' | wc -l`
   echo "  total requests in condor: $nRequests"
 else
   echo ""
